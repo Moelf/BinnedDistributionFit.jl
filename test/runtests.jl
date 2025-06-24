@@ -43,6 +43,7 @@ end
 
 
 @testitem "RooFit SumOfPdfs" begin
+    using FHist
     d1 = ExtendPdf((x, _)->x, (1,3))
     d2 = ExtendPdf((x, _)->x^2, (1,3))
     sd = d1+d2
