@@ -1,7 +1,8 @@
 using BinnedDistributionFit
 using Test, FHist
+using TestItems
 
-@testset "ExtendPdf" begin
+@testitem "ExtendPdf" begin
     d = ExtendPdf((x, _)->x, (1,3))
     @test BinnedDistributionFit.scalar_eval(d, 3) == 3
     @test BinnedDistributionFit.vector_eval(d, [3, 5]) == [3, 5]
@@ -9,9 +10,13 @@ using Test, FHist
     d2 = ExtendPdf((x, _)->abs2(x), (1,3))
     @test BinnedDistributionFit.scalar_eval(d2, 3) == 9
     @test BinnedDistributionFit.vector_eval(d2, [3, 5]) == [9, 25]
+
+    d3 = ExtendPdf((x, _) -> xor((x << 2), x) % (x^2 + 1), ())
+    @test BinnedDistributionFit.scalar_eval(d3, 3) == 5
+    @test BinnedDistributionFit.vector_eval(d3, [3, 5]) == [5, 17]
     end
 
-@testset "SumOfPdfs" begin
+@testitem "SumOfPdfs" begin
     d1 = ExtendPdf((x, _)->x, (1,3))
     d2 = ExtendPdf((x, _)->abs2(x), (1,3))
     d3 = d1+d2
@@ -19,7 +24,7 @@ using Test, FHist
     @test BinnedDistributionFit.vector_eval(d3, [3, 5]) == [12, 30]
     end
 
-@testset "RooFitNLL ExtendPdf" begin
+@testitem "RooFitNLL ExtendPdf" begin
     d = ExtendPdf((x, _)->x, (1,3))
     h = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
     NF = RooFitNLL_functor(d, h; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
