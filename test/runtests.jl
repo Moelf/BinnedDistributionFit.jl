@@ -29,11 +29,20 @@ using TestItems, TestItemRunner
     h = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
     NF = RooFitNLL_functor(d, h; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
     @test NF([2.0]) ≈ 1.6827899396467232
+
+    d2 = ExtendPdf((x, _)->abs2(x), (1,3))
+    h2 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
+    NF2 = RooFitNLL_functor(d2, h2; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
+    @test NF2([2.0]) ≈ 1.84583612533
+
+    d3 = ExtendPdf((x, _)-> exp(x) - abs2(x) + 3, (1,3))
+    h3 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
+    NF3 = RooFitNLL_functor(d3, h3; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
+    @test NF3([2.0]) ≈ 1.90019114214
 end
 
 
 @testitem "RooFit SumOfPdfs" begin
-    using FHist
     d1 = ExtendPdf((x, _)->x, (1,3))
     d2 = ExtendPdf((x, _)->x^2, (1,3))
     sd = d1+d2
