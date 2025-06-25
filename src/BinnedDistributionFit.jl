@@ -138,5 +138,6 @@ end
 
 include("./num_integrator.jl")
 include("./RooFitNLL.jl")
+include("./Chi2.jl")
 
 end
