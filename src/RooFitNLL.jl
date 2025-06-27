@@ -8,6 +8,9 @@ Computes the negative log-likelihood for a binned distribution fit.
 
 """
 function RooFitNLL(normalized_predictions, observations; normalization)
+    if any(<(0), normalized_predictions)
+        return Inf
+    end
     per_bin_term = sum(@. observations * log(normalized_predictions))
     extend_term = sum(observations)*log(normalization) - normalization
 

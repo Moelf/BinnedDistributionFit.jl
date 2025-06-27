@@ -33,7 +33,7 @@ using TestItems, TestItemRunner
 
 @testitem "RooFitNLL ExtendPdf" begin
     using FHist
-    # https://www.desmos.com/calculator/fhmq5rnwql finds manual solutions to RooFitNLL
+    # https://www.desmos.com/calculator/2e28c86a6e finds manual solutions to RooFitNLL
     d1 = ExtendPdf((x, _)->x, (1,3))
     h1 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
     NF1 = RooFitNLL_functor(d1, h1; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
@@ -52,14 +52,21 @@ end
 
 @testitem "RooFit SumOfPdfs" begin
     using FHist
-    d1 = ExtendPdf((x, _)->x, (1,3))
-    d2 = ExtendPdf((x, _)->x^2, (1,3))
-    sd1 = d1+d2
-    h1 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
-    NF1 = RooFitNLL_functor(sd1, h1; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
-    @test NF1([[2.0, 0.5], [], []]) ≈ 0.8497340452248006
-end
+    # Using the same Desmos as before (https://www.desmos.com/calculator/2e28c86a6e) to generate solutions
+    d1 = ExtendPdf((x, _) -> x, (1,3))
+    d2 = ExtendPdf((x, _) -> x^2, (1,3))
+    d3 = ExtendPdf((x, _) -> exp(x) - abs2(3x - 1) + 3, (1,3))
+    h1 = Hist1D(; binedges = 1:3, bincounts = [2.0, 4.0], sumw2 = [2.0, 4.0])
+    h2 = Hist1D(; binedges = 1:11, bincounts = [1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 5.0, 8.0, 9.0, 10.0])
+    NF1 = RooFitNLL_functor(d1 + d2, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    NF2 = RooFitNLL_functor(d1 + d3, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    NF3 = RooFitNLL_functor(d2 + d3, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
 
+    @test NF1([[2.0, 0.5], [], []]) ≈ 0.8497340452248006
+    @test NF2(([2.0, 0.5], [], [])) ≈ 0.850801892114
+    @test NF3(([2.0, 0.5], [], [])) ≈ 1.07158581388
+end
+d
 @testitem "chi2" begin
     o1 = [1, 2, 3]
     o2 = [3, 2, 1]
@@ -99,7 +106,7 @@ end
     @test BinnedDistributionFit.chi2(o3, e3, sd3) == 2525.25
 end
 
-@testitem "Chi2_functor" begin
+@testitem "Chi2 ExtendPdf" begin
     using FHist
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
     d1 = ExtendPdf((x, _) -> x-0.5, (1,3))
@@ -117,6 +124,23 @@ end
     x3 = BinnedDistributionFit.Chi2_functor(d3, h3; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
     @test x3([2]) ≈ 415.959048958
 end
+
+@testitem "Chi2 SumOfPdfs" begin
+    using FHist
+    # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
+    d1 = ExtendPdf((x, _) -> x-0.5, (1, 4))
+    d2 = ExtendPdf((x, _) -> 3x^2, (1, 4))
+    d3 = ExtendPdf((x, _) -> exp(2x)+sin(5x-3x^2), (1, 11))
+    d4 = ExtendPdf((x, _) -> 3x^3 - 4x + 7, (1, 11))
+    h1 = Hist1D(; binedges = 1:4, bincounts = [1, 2, 3], sumw2 = [1, 2, 1])
+    h2 = Hist1D(; binedges = 1:11, bincounts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sumw2 = [5, 4, 3, 2, 1, 2, 3, 4, 5, 10])
+    x1 = BinnedDistributionFit.Chi2_functor(d1 + d2, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    x2 = BinnedDistributionFit.Chi2_functor(d3 + d4, h2; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    @test x1([[3, 4], [], []]) ≈ 1.73774816049
+    @test x2([[5, 2.5], [], []]) ≈ 105.138115485
+end
+
+include("optimization.jl")
 
 @testitem "_" begin
     using Aqua
