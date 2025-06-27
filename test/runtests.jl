@@ -1,6 +1,9 @@
 using TestItems, TestItemRunner
 @run_package_tests verbose=true
 
+@testsnippet hist_dep begin
+    using FHist
+end
 @testitem "ExtendPdf" begin
     d1 = ExtendPdf((x, _)->x, (1,3))
     d2 = ExtendPdf((x, _)->abs2(x), (1,3))
@@ -31,8 +34,7 @@ using TestItems, TestItemRunner
     @test BinnedDistributionFit.vector_eval(d2+d3, [3, 5]) == [14, 42]
     end
 
-@testitem "RooFitNLL ExtendPdf" begin
-    using FHist
+@testitem "RooFitNLL ExtendPdf" setup=[hist_dep] begin
     # https://www.desmos.com/calculator/2e28c86a6e finds manual solutions to RooFitNLL
     d1 = ExtendPdf((x, _)->x, (1,3))
     h1 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
@@ -50,8 +52,7 @@ using TestItems, TestItemRunner
     @test NF3([2.0]) ≈ 1.90019114214
 end
 
-@testitem "RooFit SumOfPdfs" begin
-    using FHist
+@testitem "RooFit SumOfPdfs" setup=[hist_dep] begin
     # Using the same Desmos as before (https://www.desmos.com/calculator/2e28c86a6e) to generate solutions
     d1 = ExtendPdf((x, _) -> x, (1,3))
     d2 = ExtendPdf((x, _) -> x^2, (1,3))
@@ -105,8 +106,7 @@ end
     @test BinnedDistributionFit.chi2(o3, e3, sd3) == 2525.25
 end
 
-@testitem "Chi2 ExtendPdf" begin
-    using FHist
+@testitem "Chi2 ExtendPdf" setup=[hist_dep] begin
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
     d1 = ExtendPdf((x, _) -> x-0.5, (1,3))
     h1 = Hist1D(; binedges = 1:3, bincounts = [1, 2], sumw2 = [1, 1])
@@ -124,8 +124,7 @@ end
     @test x3([2]) ≈ 415.959048958
 end
 
-@testitem "Chi2 SumOfPdfs" begin
-    using FHist
+@testitem "Chi2 SumOfPdfs" setup=[hist_dep] begin
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
     d1 = ExtendPdf((x, _) -> x-0.5, (1, 4))
     d2 = ExtendPdf((x, _) -> 3x^2, (1, 4))
