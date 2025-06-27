@@ -1,5 +1,5 @@
 using TestItems, TestItemRunner
-@run_package_tests
+@run_package_tests verbose=true
 
 @testitem "ExtendPdf" begin
     d1 = ExtendPdf((x, _)->x, (1,3))
