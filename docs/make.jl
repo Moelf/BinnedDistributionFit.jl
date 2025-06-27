@@ -18,4 +18,4 @@ makedocs(;
     pages = ["index.md"; numbered_pages],
 )
 
-deploydocs(; repo = "github.com/Moelf/BinnedDistributionFit.jl")
+deploydocs(; push_preview=true, repo = "github.com/Moelf/BinnedDistributionFit.jl")
