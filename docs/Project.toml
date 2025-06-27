@@ -1,0 +1,11 @@
+# Don't forget to run
+#
+#     pkg> dev ..
+#
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
+BinnedDistributionFit = "f02bb49f-f210-4a55-8a0e-128c45691c98"
+
+[compat]
+Documenter = "1"
