@@ -1,5 +1,6 @@
 using BinnedDistributionFit
 using Documenter
+using DocumenterVitepress
 
 DocMeta.setdocmeta!(BinnedDistributionFit, :DocTestSetup, :(using BinnedDistributionFit); recursive = true)
 
@@ -11,11 +12,19 @@ const numbered_pages = [
 
 makedocs(;
     modules = [BinnedDistributionFit],
+    repo = Remotes.GitHub("Moelf", "BinnedDistributionFit.jl"),
     authors = "Moelf <proton@jling.dev> and contributors",
-    repo = "https://github.com/Moelf/BinnedDistributionFit.jl/blob/{commit}{path}#{line}",
     sitename = "BinnedDistributionFit.jl",
-    format = Documenter.HTML(; canonical = "https://Moelf.github.io/BinnedDistributionFit.jl"),
+    format = DocumenterVitepress.MarkdownVitepress(
+        repo = "https://github.com/Moelf/BinnedDistributionFit.jl/",
+    ),
     pages = ["index.md"; numbered_pages],
 )
 
-deploydocs(; push_preview=true, repo = "github.com/Moelf/BinnedDistributionFit.jl")
+DocumenterVitepress.deploydocs(;
+    repo = "github.com/Moelf/BinnedDistributionFit.jl",
+    target = "build", # this is where Vitepress stores its output
+    devbranch = "main",
+    branch = "gh-pages",
+    push_preview = true,
+)

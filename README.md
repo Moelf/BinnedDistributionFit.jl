@@ -1,6 +1,6 @@
 # BinnedDistributionFit
 
-[![Build Status](https://github.com/Moelf/BinnedDistributionFit.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Moelf/BinnedDistributionFit.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/Moelf/BinnedDistributionFit.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/Moelf/BinnedDistributionFit.jl/actions/workflows/Test.yml?query=branch%3Amain)
 
 ## [Work In Progress]
 Everything is subject to change, including type names and type hierarchy.
@@ -51,4 +51,3 @@ If on top of that, you also change `p0` from 2.0 to 4.0, you get NLL `-4.9521862
 ## Math for sum of two PDFs fitting to data: (i.e. `SUM::` in RooFit)
 
 ![image](https://github.com/user-attachments/assets/5ec32c86-69df-4895-b8b1-7c179c05fb67)
-
