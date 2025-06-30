@@ -17,6 +17,8 @@ using Trapz: trapz
 Type representing an extended pdf where normalization does not need to equal to 1.
 `func` can be any function that can be evaluated within `support`, when calculating Maximum Likelihood, `func` will be numerically normalized over `support`.
 
+To evaluate at a single point or at an array of points, see [`scalar_eval`](@ref BinnedDistributionFit.scalar_eval) and [`vector_eval`](@ref BinnedDistributionFit.vector_eval) respectively. 
+
 ## Examples
 ```julia
 julia> f(x, ps) = x^ps[1] + x*ps[2]
@@ -37,6 +39,17 @@ struct ExtendPdf{F, S}
     support::S
 end
 
+"""
+    scalar_eval(d::ExtendPdf, x, ps::AbstractVectorVector; kw...)
+Evaluates a pdf at a single point. See [`ExtendPdf`](@ref) for details on the struct.
+
+For example, if we have a pdf `d` with parameters `params`, we can evalute the pdf at a point x as follows:
+
+```julia
+params = [1.0, 2.0]
+scalar_eval(d, x, params)
+```
+"""
 function scalar_eval(d::ExtendPdf, x, ps=(); kw...)
     d.func(x, ps; kw...)
 end
@@ -114,7 +127,7 @@ end
 """
     scalar_eval(d::SumOfPdfs, x, vps::Vector{Vector}; kw...)
 
-Evaluate the sum of pdfs at a single point. `ps` needs to be a vector of vectors of parameters because each pdf in the sum has its own set of parameters.
+Evaluates the sum of pdfs at a single point. `ps` needs to be a vector of vectors of parameters because each pdf in the sum has its own set of parameters.
 
 For example, if we have two pdfs `pdf1` and `pdf2` with parameters `params1` and `params2`, respectively, we can evaluate the sum of the pdfs at a point `x` as follows:
 
@@ -129,7 +142,17 @@ function scalar_eval(d::SumOfPdfs, x, vps=fill(nothing, length(d.pdfs)); kw...)
         scalar_eval(d, x, ps; kw...)
     end
 end
+"""
+    vector_eval((d::SumOfPdfs, x::AbstractVector, vps::Vector{Vector}; kw...))
+Evaluates the sum of pdfs over an array of points. `vps` needs to be a vector of vectors of parameters because each pdf in the sum has its own set of parameters.
 
+For example, if we have two pdfs `pdf1` and `pdf2` with parameters `params1` and `params2`, respectively, we can evaluate the sum of the pdfs over an array point `[a, b, c]` as follows:
+```julia
+params1 = [1.0, 2.0]
+params2 = [3.0, 4.0]
+vector_eval(sumofpdfs([pdf1, pdf2]), [a, b, c], [params1, params2])
+```
+"""
 function vector_eval(d::SumOfPdfs, x::AbstractVector, vps=fill(nothing, length(d.pdfs)); kw...)
     mapreduce(+, d.pdfs, vps) do d, ps
         vector_eval(d, x, ps; kw...)
@@ -139,5 +162,4 @@ end
 include("./num_integrator.jl")
 include("./RooFitNLL.jl")
 include("./Chi2.jl")
-
 end

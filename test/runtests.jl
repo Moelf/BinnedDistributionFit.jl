@@ -110,17 +110,17 @@ end
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
     d1 = ExtendPdf((x, _) -> x-0.5, (1,3))
     h1 = Hist1D(; binedges = 1:3, bincounts = [1, 2], sumw2 = [1, 1])
-    x1 = BinnedDistributionFit.Chi2_functor(d1, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    x1 = BinnedDistributionFit.chi2_functor(d1, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
     @test x1([3]) == 0
 
     d2 = ExtendPdf((x, _) -> (x^2 - 3x + 1), (1,5))
     h2 = Hist1D(; binedges = 1:5, bincounts = [1, 2, 3, 4], sumw2 = [6, 2, 1, 5])
-    x2 = BinnedDistributionFit.Chi2_functor(d2, h2; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    x2 = BinnedDistributionFit.chi2_functor(d2, h2; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
     @test x2([2]) ≈ 9.2824829932
 
     d3 = ExtendPdf((x, _) -> (2^x - 3x^3 + 4 - 1/x), (1,11))
     h3 = Hist1D(; binedges = 1:11, bincounts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sumw2 = [6, 2, 1, 5, 10, 0.1, 3, 6, 9, 3.2])
-    x3 = BinnedDistributionFit.Chi2_functor(d3, h3; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    x3 = BinnedDistributionFit.chi2_functor(d3, h3; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
     @test x3([2]) ≈ 415.959048958
 end
 
@@ -133,8 +133,8 @@ end
     d4 = ExtendPdf((x, _) -> 3x^3 - 4x + 7, (1, 11))
     h1 = Hist1D(; binedges = 1:4, bincounts = [1, 2, 3], sumw2 = [1, 2, 1])
     h2 = Hist1D(; binedges = 1:11, bincounts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sumw2 = [5, 4, 3, 2, 1, 2, 3, 4, 5, 10])
-    x1 = BinnedDistributionFit.Chi2_functor(d1 + d2, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
-    x2 = BinnedDistributionFit.Chi2_functor(d3 + d4, h2; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    x1 = BinnedDistributionFit.chi2_functor(d1 + d2, h1; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
+    x2 = BinnedDistributionFit.chi2_functor(d3 + d4, h2; num_integrator = BinnedDistributionFit.QuadGKIntegrator())
     @test x1([[3, 4], [], []]) ≈ 1.73774816049
     @test x2([[5, 2.5], [], []]) ≈ 105.138115485
 end
