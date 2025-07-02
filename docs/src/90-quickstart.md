@@ -1,5 +1,4 @@
 # Quicker Start
-
 ```julia
 using FHist, Optimize, ForwardDiff
 

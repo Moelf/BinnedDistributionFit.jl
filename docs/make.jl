@@ -17,8 +17,6 @@ makedocs(;
     sitename = "BinnedDistributionFit.jl",
     format = DocumenterVitepress.MarkdownVitepress(
         repo = "https://github.com/Moelf/BinnedDistributionFit.jl/",
-        md_output_path = ".",
-        build_vitepress = false
     ),
     pages = ["index.md"; numbered_pages],
 )
@@ -29,5 +27,4 @@ DocumenterVitepress.deploydocs(;
     devbranch = "main",
     branch = "gh-pages",
     push_preview = true,
-    clean = false
 )
