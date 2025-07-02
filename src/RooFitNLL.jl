@@ -7,7 +7,7 @@ Computes the negative log-likelihood for a binned distribution fit.
 - `normalization`: A scalar value for normalization. Conceptually equal to the pdf generateing `predictions` integrated over the domain.
 
 """
-function RooFitNLL(normalized_predictions, observations; normalization)
+function RooFitNLL_internal(normalized_predictions, observations; normalization)
     if any(<(0), normalized_predictions)
         return Inf
     end
@@ -54,7 +54,7 @@ function RooFitNLL_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator=Simpl
         oneD_func(x) = scalar_eval(d, x, ps; kw...)
         numerical_int = _integrate(oneD_func, data_hist, num_integrator)
         normalized_predictions = predictions ./ numerical_int
-        return RooFitNLL(normalized_predictions, observations; normalization=norm)
+        return RooFitNLL_internal(normalized_predictions, observations; normalization=norm)
     end
 end
 
@@ -113,6 +113,72 @@ function RooFitNLL_functor(sumpdfs::SumOfPdfs, data_hist::Hist1D; num_integrator
         end
 
         normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
-        return RooFitNLL(normalized_predictions, observations; normalization=overall_norm)
+        return RooFitNLL_internal(normalized_predictions, observations; normalization=overall_norm)
     end
 end
+
+struct LikelihoodSpec{p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator}
+    pdf::p
+    d_hist::h
+    num_int::NI
+    bcs::V
+    function LikelihoodSpec(pdf, d_hist; num_int=SimpleSumIntegrator())
+        bcs=bincenters(d_hist)
+        p=typeof(pdf)
+        h=typeof(d_hist)
+        V=typeof(bcs)
+        NI=typeof(num_int)
+        new{p,h,V,NI}(pdf,d_hist,num_int,bcs)
+    end
+end
+
+function (NLL2::LikelihoodSpec)(n_vps::Vector{Vector})
+    norms, vps... = n_vps
+    overall_norm = sum(norms)
+    fractions_of_pdfs = norms ./ overall_norm
+    if length(norms) != length(NLL2.d_hist.pdfs)
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    integrals_of_pdfs = map(sumpdfs.pdfs, vps) do d, ps
+        oneD_func(x) = scalar_eval(d, x, ps; kw...)
+        _integrate(oneD_func, data_hist, num_integrator)
+    end
+    predictions_of_pdfs =  map(sumpdfs.pdfs, vps) do d, ps
+        vector_eval(d, NLL2.bcs, ps; kw...)
+    end
+    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
+    if any(<(0), normalized_predictions)
+        return Inf
+    end
+    per_bin_term = sum(@. NLL2.bct * log(normalized_predictions))
+    extend_term = sum(NLL2.bct)*log(overall_norm) - normalization
+    return -per_bin_term - extend_term
+end
+function (NLL2::LikelihoodSpec)(nps::ComponentVector)
+    overall_norm = sum(nps.norms)
+    fractions_of_pdfs = norms ./ overall_norm
+    if length(norms) != length(NLL2.d_hist.pdfs)
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    integrals_of_pdfs = map(sumpdfs.pdfs, vps) do d, ps
+        oneD_func(x) = scalar_eval(d, x, ps; kw...)
+        _integrate(oneD_func, data_hist, num_integrator)
+    end
+    predictions_of_pdfs =  map(sumpdfs.pdfs, vps) do d, ps
+        vector_eval(d, NLL2.bcs, ps; kw...)
+    end
+    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
+    if any(<(0), normalized_predictions)
+        return Inf
+    end
+    per_bin_term = sum(@. NLL2.bct * log(normalized_predictions))
+    extend_term = sum(NLL2.bct)*log(overall_norm) - normalization
+    return -per_bin_term - extend_term
+end
+
+
+
+
+#a =hlfdfk(4,Hist1D(1),ComponentVector(a=[1,2,3]))
+
+

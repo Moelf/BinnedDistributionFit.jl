@@ -10,12 +10,19 @@ FHist = "68837c9b-b678-4cd5-9925-8a54edc8f695"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 Trapz = "592b5752-818d-11e9-1e9a-2b8ca4a44cd1"
 
+[weakdeps]
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+
+[extensions]
+BinnedDistributionFitMakieExt = "Makie"
+
 [compat]
 Aqua = "0.8.13"
 ComponentArrays = "0.15.28"
 Distributions = "0.25.118"
 FHist = "0.11.9"
 ForwardDiff = "1.0.1"
+Makie = "0.24.2"
 Optimization = "4.4.0"
 QuadGK = "2.11.2"
 Test = "1"
@@ -26,7 +33,6 @@ julia = "1.11"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
-ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 FHist = "68837c9b-b678-4cd5-9925-8a54edc8f695"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Optimization = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
@@ -35,4 +41,4 @@ TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 
 [targets]
-test = ["Aqua", "Test", "FHist", "TestItems", "TestItemRunner", "Optimization", "ForwardDiff", "ComponentArrays"]
+test = ["Aqua", "Test", "FHist", "TestItems", "TestItemRunner", "Optimization", "ForwardDiff"]

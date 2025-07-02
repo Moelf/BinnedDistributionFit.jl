@@ -5,9 +5,14 @@ import Distributions: pdf, cdf
 export ExtendPdf, SumOfPdfs, RooFitNLL, RooFitNLL_functor, pdf
 
 using FHist: Hist1D, binedges, bincenters, bincounts
+using ComponentArrays
 using QuadGK: quadgk
 using Trapz: trapz
 
+function plotthing end
+function plotthing! end
+
+abstract type AbstractPdf end
 """
     struct ExtendPdf{F, S}
         func::F
@@ -34,7 +39,7 @@ julia> BinnedDistributionFit.vector_eval(d, [2.0, 3.0], [1,2])
  9.0
 ```
 """
-struct ExtendPdf{F, S}
+struct ExtendPdf{F, S} <: AbstractPdf
     func::F
     support::S
 end
@@ -93,7 +98,7 @@ julia> BinnedDistributionFit.scalar_eval(sd2, 2.0, [[], [], [1,2,3]])
 9.0
 ```
 """
-struct SumOfPdfs{V, S}
+struct SumOfPdfs{V, S} <: AbstractPdf
     pdfs::V
     support::S
 end
@@ -142,6 +147,7 @@ function scalar_eval(d::SumOfPdfs, x, vps=fill(nothing, length(d.pdfs)); kw...)
         scalar_eval(d, x, ps; kw...)
     end
 end
+
 """
     vector_eval((d::SumOfPdfs, x::AbstractVector, vps::Vector{Vector}; kw...))
 Evaluates the sum of pdfs over an array of points. `vps` needs to be a vector of vectors of parameters because each pdf in the sum has its own set of parameters.
