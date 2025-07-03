@@ -23,9 +23,7 @@ function Makie.plot!(input::PlotThing)
     stairs!(input, LS.d_hist; label="Data", color=:black)
     pdfs = get_pdf(LS.pdf)
     vks = valkeys(ps)
-
     normalizations = ps[vks[begin]]
-
     predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do ex_pdf, pas
         x = LS.bcs
         p0 = getproperty(ps, pas)

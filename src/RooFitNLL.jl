@@ -131,53 +131,58 @@ struct LikelihoodSpec{p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIn
     end
 end
 
-function (NLL2::LikelihoodSpec)(n_vps::Vector{Vector})
+function get_pdf(pdfs::ExtendPdf)
+    return [pdfs]
+end
+
+function get_pdf(pdfs::SumOfPdfs)
+    return pdfs.pdfs
+end
+
+function (NLL2::LikelihoodSpec)(n_vps::Vector{Vector}; kw...)
     norms, vps... = n_vps
     overall_norm = sum(norms)
     fractions_of_pdfs = norms ./ overall_norm
     if length(norms) != length(NLL2.d_hist.pdfs)
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
-    integrals_of_pdfs = map(sumpdfs.pdfs, vps) do d, ps
+    integrals_of_pdfs = map(NLL2.d_hist.pdfs, vps) do d, ps
         oneD_func(x) = scalar_eval(d, x, ps; kw...)
         _integrate(oneD_func, data_hist, num_integrator)
     end
-    predictions_of_pdfs =  map(sumpdfs.pdfs, vps) do d, ps
+    predictions_of_pdfs =  map(NLL2.d_hist.pdfs, vps) do d, ps
         vector_eval(d, NLL2.bcs, ps; kw...)
     end
     normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
     if any(<(0), normalized_predictions)
         return Inf
     end
-    per_bin_term = sum(@. NLL2.bct * log(normalized_predictions))
-    extend_term = sum(NLL2.bct)*log(overall_norm) - normalization
+    per_bin_term = sum(@. NLL2.d_hist.bincounts * log(normalized_predictions))
+    extend_term = sum(NLL2.d_hist.bincounts)*log(overall_norm) - overall_norm
     return -per_bin_term - extend_term
 end
-function (NLL2::LikelihoodSpec)(nps::ComponentVector)
-    overall_norm = sum(nps.norms)
+function (NLL2::LikelihoodSpec)(nps::ComponentVector; kw...)
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    overall_norm = sum(norms)
     fractions_of_pdfs = norms ./ overall_norm
-    if length(norms) != length(NLL2.d_hist.pdfs)
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
-    integrals_of_pdfs = map(sumpdfs.pdfs, vps) do d, ps
-        oneD_func(x) = scalar_eval(d, x, ps; kw...)
-        _integrate(oneD_func, data_hist, num_integrator)
+    if length(vks)-1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks)-1)"))
     end
-    predictions_of_pdfs =  map(sumpdfs.pdfs, vps) do d, ps
-        vector_eval(d, NLL2.bcs, ps; kw...)
+    integrals_of_pdfs = map(pdfs, vks[(begin+1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        oneD_func(x) = scalar_eval(d, x, p0; kw...)
+        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+    end
+    predictions_of_pdfs =  map(pdfs, vks[(begin+1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        vector_eval(d, NLL2.bcs, p0, kw...)
     end
     normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
-    if any(<(0), normalized_predictions)
-        return Inf
-    end
-    per_bin_term = sum(@. NLL2.bct * log(normalized_predictions))
-    extend_term = sum(NLL2.bct)*log(overall_norm) - normalization
-    return -per_bin_term - extend_term
+    return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization=overall_norm)
 end
-
-
-
-
-#a =hlfdfk(4,Hist1D(1),ComponentVector(a=[1,2,3]))
-
-
