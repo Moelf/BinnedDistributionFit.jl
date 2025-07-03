@@ -7,7 +7,7 @@ Computes the negative log-likelihood for a binned distribution fit.
 - `normalization`: A scalar value for normalization. Conceptually equal to the pdf generateing `predictions` integrated over the domain.
 
 """
-function RooFitNLL(normalized_predictions, observations; normalization)
+function RooFitNLL_internal(normalized_predictions, observations; normalization)
     if any(<(0), normalized_predictions)
         return Inf
     end
@@ -17,6 +17,7 @@ function RooFitNLL(normalized_predictions, observations; normalization)
     return -per_bin_term - extend_term
 end
 
+#=
 """
     RooFitNLL_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator=SimpleSumIntegrator())
 
@@ -42,21 +43,6 @@ julia> NF([10., 2.0, 3.0])
 0.060373400847997694
 ```
 """
-function RooFitNLL_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator=SimpleSumIntegrator())
-    bes, bcs = binedges(data_hist), bincenters(data_hist)
-    observations = bincounts(data_hist)
-    @assert extrema(bes) == extrema(d.support) "The support of the distribution must match the bin edges of the histogram."
-
-    function (norm_and_ps; kw...)
-        norm, ps... = norm_and_ps
-        predictions = vector_eval(d, bcs, ps; kw...)
-
-        oneD_func(x) = scalar_eval(d, x, ps; kw...)
-        numerical_int = _integrate(oneD_func, data_hist, num_integrator)
-        normalized_predictions = predictions ./ numerical_int
-        return RooFitNLL(normalized_predictions, observations; normalization=norm)
-    end
-end
 
 """
     RooFitNLL_functor(sumpdfs::SumOfPdfs, data_hist::Hist1D; num_integrator=SimpleSumIntegrator())
@@ -89,30 +75,53 @@ julia> NF([[2.0, 3.0], [6.0, 7.0], [1.0, 5.0, 9.0]])
 -0.627546320921633
 ```
 """
-function RooFitNLL_functor(sumpdfs::SumOfPdfs, data_hist::Hist1D; num_integrator=SimpleSumIntegrator())
-    bes, bcs = binedges(data_hist), bincenters(data_hist)
-    observations = bincounts(data_hist)
-    @assert extrema(bes) == extrema(sumpdfs.support) "The support of the distribution must match the bin edges of the histogram."
+=#
 
-    Npdfs = length(sumpdfs.pdfs)
-    function (norms_and_vps; kw...)
-        # both are vectors
-        norms, vps... = norms_and_vps
-        overall_norm = sum(norms)
-        fractions_of_pdfs = norms ./ overall_norm
-        if length(norms) != Npdfs
-            throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
-        end
-
-        integrals_of_pdfs = map(sumpdfs.pdfs, vps) do d, ps
-            oneD_func(x) = scalar_eval(d, x, ps; kw...)
-            _integrate(oneD_func, data_hist, num_integrator)
-        end
-        predictions_of_pdfs =  map(sumpdfs.pdfs, vps) do d, ps
-            vector_eval(d, bcs, ps; kw...)
-        end
-
-        normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
-        return RooFitNLL(normalized_predictions, observations; normalization=overall_norm)
+struct LikelihoodSpec{p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator}
+    pdf::p
+    d_hist::h
+    num_int::NI
+    bcs::V
+    function LikelihoodSpec(pdf, d_hist; num_int=SimpleSumIntegrator())
+        bcs=bincenters(d_hist)
+        p=typeof(pdf)
+        h=typeof(d_hist)
+        V=typeof(bcs)
+        NI=typeof(num_int)
+        new{p,h,V,NI}(pdf,d_hist,num_int,bcs)
     end
+end
+
+function get_pdf(pdfs::ExtendPdf)
+    return [pdfs]
+end
+
+function get_pdf(pdfs::SumOfPdfs)
+    return pdfs.pdfs
+end
+
+function (NLL2::LikelihoodSpec)(nps::ComponentVector; kw...)
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    overall_norm = sum(norms)
+    fractions_of_pdfs = norms ./ overall_norm
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks)-1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks)-1)"))
+    end
+    integrals_of_pdfs = map(pdfs, vks[(begin+1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        oneD_func(x) = scalar_eval(d, x, p0; kw...)
+        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+    end
+    predictions_of_pdfs =  map(pdfs, vks[(begin+1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        vector_eval(d, NLL2.bcs, p0, kw...)
+    end
+    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
+    return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization=overall_norm)
 end

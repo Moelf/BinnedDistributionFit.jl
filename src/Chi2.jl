@@ -1,6 +1,14 @@
 using FHist
 
-function Chi2_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator = SimpleSumIntegrator())
+"""
+    chi2(obs, expected, sd)
+computes stuff in stuff and stuff
+"""
+function chi2(obs, expected, sd) 
+    return sum(@. abs2((obs - expected)/sd))
+end
+
+function chi2_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator = SimpleSumIntegrator())
     bes, bcs, ber = binedges(data_hist), bincenters(data_hist), binerrors(data_hist)
     obs = bincounts(data_hist)
     @assert extrema(bes) == extrema(d.support) "The support of the distribution must match the bin edges of the histogram."
@@ -14,11 +22,7 @@ function Chi2_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator = SimpleSu
     end
 end
 
-function chi2(obs, expected, sd) 
-    return sum(@. abs2((obs - expected)/sd))
-end
-
-function Chi2_functor(d::SumOfPdfs, data_hist::Hist1D; num_integrator = SimpleSumIntegrator())
+function chi2_functor(d::SumOfPdfs, data_hist::Hist1D; num_integrator = SimpleSumIntegrator())
     bes, bcs, ber = binedges(data_hist), bincenters(data_hist), binerrors(data_hist)
     obs = bincounts(data_hist)
     @assert extrema(bes) == extrema(d.support) "The support of the distribution must match the bin edges of the histogram."

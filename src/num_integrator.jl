@@ -16,4 +16,3 @@ function _integrate(func, hist::Hist1D, ::SimpleSumIntegrator)
     bcs = bincenters(hist)
     return sum(func.(bcs))
 end
-
