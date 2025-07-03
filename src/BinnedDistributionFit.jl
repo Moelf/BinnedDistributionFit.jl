@@ -166,6 +166,6 @@ function vector_eval(d::SumOfPdfs, x::AbstractVector, vps=fill(nothing, length(d
 end
 
 include("./num_integrator.jl")
-include("./RooFitNLL.jl")
+include("./LikelihoodSpec.jl")
 include("./Chi2.jl")
 end
