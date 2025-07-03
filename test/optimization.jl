@@ -1,4 +1,4 @@
-@testitem "Cross-check chi2 and NLL" begin
+@testitem "Cross-check chi2 and LikelihoodSpec" begin
 
 using Optimization, ForwardDiff, FHist, ComponentArrays
 
@@ -11,7 +11,7 @@ function compare_chi2_NLL(d, h1, ps)
     prob = OptimizationProblem(optf, [integral(h1); ps])
     sol = solve(prob, Optimization.LBFGS())
     
-    NLL = BinnedDistributionFit.RooFitNLL_functor(ExtendPdf(d, support), h1)
+    NLL = BinnedDistributionFit.LikelihoodSpec(ExtendPdf(d, support), h1)
     NLL_wrapper(x,_) = NLL(x)
     println(ComponentArray(a=integral(h1),b=ps))
     optf2 = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
@@ -23,13 +23,7 @@ end
 
 d(x, ps) = ps[1]x+ps[2]
 
-#d2(x, ps) = ps[1]^x+ps[2]*x
 h1 = Hist1D(; binedges=1:2:21, bincounts=[1:4; 1; 6:10], sumw2=1:10)
-#=
-N(x,_) = BinnedDistributionFit.RooFitNLL_functor(ExtendPdf(d1, (1,21))+ExtendPdf(d2, (1,21)), h1)(x)
-optf = OptimizationFunction(N, AutoForwardDiff())
-prob = OptimizationProblem(optf, ComponentArray(a=1, ))
-=#
 
 @test isapprox(compare_chi2_NLL(d, h1, [1,1])...) rtol=0.01
 
