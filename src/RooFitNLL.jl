@@ -50,7 +50,6 @@ function RooFitNLL_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator=Simpl
     function (norm_and_ps; kw...)
         norm, ps... = norm_and_ps
         predictions = vector_eval(d, bcs, ps; kw...)
-
         oneD_func(x) = scalar_eval(d, x, ps; kw...)
         numerical_int = _integrate(oneD_func, data_hist, num_integrator)
         normalized_predictions = predictions ./ numerical_int

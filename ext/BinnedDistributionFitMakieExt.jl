@@ -1,12 +1,11 @@
 module BinnedDistributionFitMakieExt
 using BinnedDistributionFit
 import BinnedDistributionFit: plotthing, plotthing!
-# whatever the else goes here idk
 
 using Makie, ComponentArrays
 
 @recipe PlotThing (LS, ps) begin
-    d = 1
+    cycle = [:color]
     Makie.mixin_generic_plot_attributes()...
 end
 
@@ -21,21 +20,31 @@ end
 function Makie.plot!(input::PlotThing)
     LS = input.LS[]
     ps = input.ps[]
-    plot!(input, LS.d_hist)
+    stairs!(input, LS.d_hist; label="Data", color=:black)
     pdfs = get_pdf(LS.pdf)
     vks = valkeys(ps)
-    predictions_of_pdfs =  map(pdfs, vks[begin+1:end]) do ex_pdf, pas
-        BinnedDistributionFit.vector_eval(ex_pdf, LS.bcs, getproperty(ps, pas))
+
+    normalizations = ps[vks[begin]]
+
+    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do ex_pdf, pas
+        x = LS.bcs
+        p0 = getproperty(ps, pas)
+        oneD_func(x) = BinnedDistributionFit.scalar_eval(ex_pdf, x, p0)
+        numerical_int = BinnedDistributionFit._integrate(oneD_func, LS.d_hist, BinnedDistributionFit.QuadGKIntegrator())
+        predictions = BinnedDistributionFit.vector_eval(ex_pdf, x, p0)
+        return predictions ./ numerical_int
     end
-    for ys in predictions_of_pdfs
-         lines!(input, LS.bcs, ys)
+
+    for (N, ys) in zip(normalizations, predictions_of_pdfs)
+        lines!(input, LS.bcs, N * ys)
     end
 
     if length(pdfs) ≠ 1
-        lines!(input, LS.bcs, sum(predictions_of_pdfs); label="Sum")
+        lines!(input, LS.bcs, sum(predictions_of_pdfs))
     end
     return input
 end
 
 
 end
+
