@@ -100,28 +100,6 @@ function get_pdf(pdfs::SumOfPdfs)
     return pdfs.pdfs
 end
 
-function (NLL2::LikelihoodSpec)(n_vps::Vector{Vector}; kw...)
-    norms, vps... = n_vps
-    overall_norm = sum(norms)
-    fractions_of_pdfs = norms ./ overall_norm
-    if length(norms) != length(NLL2.d_hist.pdfs)
-        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
-    end
-    integrals_of_pdfs = map(NLL2.d_hist.pdfs, vps) do d, ps
-        oneD_func(x) = scalar_eval(d, x, ps; kw...)
-        _integrate(oneD_func, data_hist, num_integrator)
-    end
-    predictions_of_pdfs =  map(NLL2.d_hist.pdfs, vps) do d, ps
-        vector_eval(d, NLL2.bcs, ps; kw...)
-    end
-    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
-    if any(<(0), normalized_predictions)
-        return Inf
-    end
-    per_bin_term = sum(@. NLL2.d_hist.bincounts * log(normalized_predictions))
-    extend_term = sum(NLL2.d_hist.bincounts)*log(overall_norm) - overall_norm
-    return -per_bin_term - extend_term
-end
 function (NLL2::LikelihoodSpec)(nps::ComponentVector; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
