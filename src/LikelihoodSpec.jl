@@ -82,6 +82,12 @@ abstract type LossFunction end
 struct NLL <: LossFunction end
 struct CSQ <: LossFunction end
 
+"""
+    LikelihoodSpec(pdf, d_hist; loss_type=NLL(), num_int=SimpleSumIntegrator())
+
+A type constructor representing a set of pdfs and binned histogram data. Method of calculating loss function and integration method may be specified in keyword arguments.
+`pdf` must be an `ExtendPdf` or `SumOfPdfs`. `d_hist` 
+"""
 struct LikelihoodSpec{LF<:LossFunction,p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator}
     loss_type::LF
     pdf::p

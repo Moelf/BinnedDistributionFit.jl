@@ -7,12 +7,13 @@ h =             # <-- Enter histogram here as an FHist histogram
 
 support = extrema(binedges(h1))
 
-NLL = BinnedDistributionFit.RooFitNLL_functor(ExtendPdf(d, support), h1)
+NLL = LikelihoodSpec(ExtendPdf(d, support), h1)
 NLL_wrapper(x,_) = NLL(x)
 
 optf = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
-prob = OptimizationProblem(optf, [integral(h); ps])
+prob = OptimizationProblem(optf, ComponentArray(norms=integral(h),p1=ps))
 sol = solve(prob, Optimization.LBFGS())
+
 sol
 # Answer comes out here
 ```
