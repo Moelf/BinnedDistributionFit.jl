@@ -2,7 +2,7 @@ module BinnedDistributionFit
 
 import Distributions: pdf, cdf
 
-export ExtendPdf, SumOfPdfs, RooFitNLL_functor, pdf
+export ExtendPdf, SumOfPdfs, pdf
 
 using FHist: Hist1D, binedges, bincenters, bincounts
 using ComponentArrays
