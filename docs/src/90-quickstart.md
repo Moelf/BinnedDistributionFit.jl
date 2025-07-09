@@ -110,3 +110,38 @@ x = BinnedDistributionFit.chi2_functor(d1 + d2, h; num_integrator = BinnedDistri
 x([[3, 4], [], []])
 # Output: 1.73774816049
 ```
+
+## Usage with Optimization.jl
+
+```julia
+using Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+
+# Creating our sample data and sampling 5,000 points from it
+L_dist = Laplace(50, 20)
+L_data = rand(L_dist, 50000)
+
+# Creating our pdf with two unknown parameters, both stored in the vector ps
+f(x, ps) = pdf(Laplace(ps[1], ps[2]), x)
+
+# Wrapping our data and pdf into the proper form for LikelihoodSpec
+hist = Hist1D(L_data; binedges = 0:100)
+pdf_input = BinnedDistributionFit.ExtendPdf(f, (0,100))
+
+# Creating the actual object that will be optimized and wraps it
+NLL = BinnedDistributionFit.LikelihoodSpec(pdf_input, hist)
+NLL_wrapper(x, _) = NLL(x)
+
+# This will act as our initial guesses for the values of the parameters and an overall norm.
+# Note that each vector element of parameter ComponentArrays must be of type Vector{float}
+para_guess = ComponentArray(norm = [47000.], p1 = [70., 30.])
+
+# Defines the optimization function and problem within the Optimization.jl format
+opt_f = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
+opt_p = OptimizationProblem(opt_f, para_guess)
+
+sol = solve(opt_p, Optimization.LBFGS())
+
+# Graphing the data and the optimized function
+fig = BinnedDistributionFit.plotthing(NLL, sol.u)
+```
+[INSERT IMAGE HERE]
