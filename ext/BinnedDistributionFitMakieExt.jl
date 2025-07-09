@@ -1,5 +1,6 @@
 module BinnedDistributionFitMakieExt
 using BinnedDistributionFit
+using BinnedDistributionFit.FHist: binedges
 import BinnedDistributionFit: plotthing, plotthing!
 
 using Makie, ComponentArrays
@@ -23,7 +24,8 @@ function Makie.plot!(input::PlotThing)
     stairs!(input, LS.d_hist; label="Data", color=:black)
     pdfs = get_pdf(LS.pdf)
     vks = valkeys(ps)
-    normalizations = ps[vks[begin]]
+    binwidth = binedges(LS.d_hist) |> diff |> unique |> only
+    normalizations = ps[vks[begin]] .* binwidth
     predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do ex_pdf, pas
         x = LS.bcs
         p0 = getproperty(ps, pas)
@@ -38,11 +40,10 @@ function Makie.plot!(input::PlotThing)
     end
 
     if length(pdfs) ≠ 1
-        lines!(input, LS.bcs, sum(predictions_of_pdfs))
+        lines!(input, LS.bcs, sum(normalizations .* predictions_of_pdfs); color= :tomato)
     end
     return input
 end
-
 
 end
 

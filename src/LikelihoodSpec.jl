@@ -8,7 +8,7 @@ Computes the negative log-likelihood for a binned distribution fit.
 
 """
 function RooFitNLL_internal(normalized_predictions, observations; normalization)
-    if any(<(0), normalized_predictions)
+    if any(≤(0), normalized_predictions)
         return Inf
     end
     per_bin_term = sum(@. observations * log(normalized_predictions))
@@ -88,7 +88,7 @@ struct CSQ <: LossFunction end
 A type constructor representing a set of pdfs and binned histogram data. Method of calculating loss function and integration method may be specified in keyword arguments.
 `pdf` must be an `ExtendPdf` or `SumOfPdfs`. `d_hist` 
 """
-struct LikelihoodSpec{LF<:LossFunction,p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator}
+struct LikelihoodSpec{LF<:LossFunction,p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator} <: Function
     loss_type::LF
     pdf::p
     d_hist::h
@@ -111,6 +111,29 @@ end
 
 function get_pdf(pdfs::SumOfPdfs)
     return pdfs.pdfs
+end
+
+function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
+    norms, vps... = nps
+    overall_norm = sum(norms)
+    fractions_of_pdfs = norms ./ overall_norm
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vps)-1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vps)-1)"))
+    end
+    integrals_of_pdfs = map(pdfs, vps) do d, p0
+        oneD_func(x) = scalar_eval(d, x, p0; kw...)
+        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+    end
+    predictions_of_pdfs = map(pdfs, vps) do d, p0
+        vector_eval(d, NLL2.bcs, p0, kw...)
+    end
+    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
+    return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization=overall_norm)
 end
 
 function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
