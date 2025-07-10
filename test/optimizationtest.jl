@@ -12,8 +12,7 @@
         sol = solve(prob, Optimization.LBFGS())
 
         NLL = BinnedDistributionFit.LikelihoodSpec(ExtendPdf(d, support), h1)
-        NLL_wrapper(x, _) = NLL(x)
-        optf2 = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
+        optf2 = OptimizationFunction(NLL, AutoForwardDiff())
         prob2 = OptimizationProblem(optf2, ComponentArray(a = [integral(h1)], b = ps))
         sol2 = solve(prob2, Optimization.LBFGS())
 

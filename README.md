@@ -43,31 +43,6 @@ fit_pdf_to_hist(hist, pdf_input, guess)
 ComponentVector{Float64}(norms = 51.0, p1 = [6.975319732308675, -0.8718290560996027])
 ```
 
-## Sum of user-defined PDFs
-```julia
-using BinnedDistributionFit, FHist
-
-# user defined functions
-julia> f(x,ps) = x + ps[1] + ps[2]*x
-
-julia> g(x,ps) = ps[1] + ps[3]
-
-# SumOfPdfs
-julia> sd = ExtendPdf(f, (1,3)) + ExtendPdf(g, (1,3))
-
-# data histogram
-julia> h = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
-edges: [1.0, 2.0, 3.0]
-bin counts: [2.0, 4.0]
-total count: 6.0
-
-julia> NF = RooFitNLL_functor(sd, h; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
-
-# the functor takes vector of N+1 vectors as input, the first vector keeps track of the normalization for each of the N pdfs, the rest are the parameters for each user-defined pdf
-julia> NF([[2.0, 3.0], [6.0, 7.0], [1.0, 5.0, 9.0]])
--0.627546320921633
-```
-
 ## Math for One PDF fitting to Data: (i.e. `ExtendPdf`)
 
 For main.py and main.jl (just the ExtendPdf)
