@@ -17,7 +17,6 @@ The following code provides a framework for optimizing a single function with an
 ```jldoctest
 using BinnedDistributionFit, FHist, Optimization, ForwardDiff, ComponentArrays
 
-# 
 function fit_pdf_to_hist(hist::Hist1D, pdf, guess::Vector)
     support = extrema(binedges(hist))
 
