@@ -77,18 +77,25 @@ julia> NF([[2.0, 3.0], [6.0, 7.0], [1.0, 5.0, 9.0]])
 """
 =#
 
-struct LikelihoodSpec{p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator}
+
+abstract type LossFunction end
+struct NLL <: LossFunction end
+struct CSQ <: LossFunction end
+
+struct LikelihoodSpec{LF<:LossFunction,p<:AbstractPdf,h<:Hist1D,V<:AbstractVector,NI<:NumericalIntegrator}
+    loss_type::LF
     pdf::p
     d_hist::h
     num_int::NI
     bcs::V
-    function LikelihoodSpec(pdf, d_hist; num_int=SimpleSumIntegrator())
+    function LikelihoodSpec(pdf,d_hist;loss_type=NLL(),num_int=SimpleSumIntegrator())
         bcs=bincenters(d_hist)
         p=typeof(pdf)
         h=typeof(d_hist)
         V=typeof(bcs)
         NI=typeof(num_int)
-        new{p,h,V,NI}(pdf,d_hist,num_int,bcs)
+        LF=typeof(loss_type)
+        new{LF,p,h,V,NI}(loss_type,pdf,d_hist,num_int,bcs)
     end
 end
 
@@ -100,7 +107,7 @@ function get_pdf(pdfs::SumOfPdfs)
     return pdfs.pdfs
 end
 
-function (NLL2::LikelihoodSpec)(nps::ComponentVector; kw...)
+function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
     overall_norm = sum(norms)
@@ -118,10 +125,37 @@ function (NLL2::LikelihoodSpec)(nps::ComponentVector; kw...)
         oneD_func(x) = scalar_eval(d, x, p0; kw...)
         _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
     end
-    predictions_of_pdfs =  map(pdfs, vks[(begin+1):end]) do d, ps
+    predictions_of_pdfs = map(pdfs, vks[(begin+1):end]) do d, ps
         p0 = getproperty(nps, ps)
         vector_eval(d, NLL2.bcs, p0, kw...)
     end
     normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization=overall_norm)
+end
+
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)
+    ber = binerrors(NLL2.d_hist)
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != length(pdfs)
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks)-1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks)-1)"))
+    end
+    integrals_of_pdfs = map(pdfs, vks[(begin+1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        oneD_func(x) = scalar_eval(d, x, p0; kw...)
+        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+    end
+    predictions_of_pdfs = map(pdfs, vks[(begin+1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        vector_eval(d, NLL2.bcs, p0, kw...)
+    end
+    overall_norms = sum(norms)
+    normed_predictions = sum(abs2.(norms) / overall_norms .* predictions_of_pdfs ./ integrals_of_pdfs)
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, ber)
+    # return sum(@. abs2((NLL2.d_hist.bincounts-normed_predictions)/ber))
 end
