@@ -113,7 +113,7 @@ x([[3, 4], [], []])
 
 ## Usage with Optimization.jl
 
-```@example Plotting Example
+```@example Plotting_Example
 using Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
 CairoMakie.activate!(; type="svg") # hide
 
