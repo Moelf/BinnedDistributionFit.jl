@@ -1,5 +1,5 @@
 @testitem "optimization.jl optimization" begin
-    using FHist, Revise, ComponentArrays, Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+    using FHist, ComponentArrays, Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
     N = Normal(100.0, 5.0)
     N_gaus_truth = 50000
     dat1 = rand(N, N_gaus_truth)
@@ -33,7 +33,7 @@
 end
 
 @testitem "minuit optimization" begin
-    using FHist, Revise, ComponentArrays, Distributions, CairoMakie, BinnedDistributionFit, Minuit2
+    using FHist, ComponentArrays, Distributions, CairoMakie, BinnedDistributionFit, Minuit2
     N = Normal(100.0, 5.0)
     N_gaus_truth = 5000
     dat1 = rand(N, N_gaus_truth)
@@ -64,7 +64,7 @@ end
 end
 
 begin
-    using FHist, Revise, ComponentArrays, Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+    using FHist, ComponentArrays, Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
     # Creating our sample data and sampling 5,000 points from it
     L_dist = Laplace(50, 20)
     L_data = rand(L_dist, 50000)
