@@ -21,7 +21,7 @@ end
 function Makie.plot!(input::PlotThing)
     LS = input.LS[]
     ps = input.ps[]
-    stairs!(input, LS.d_hist; label="Data", color=:black)
+    stairs!(input, LS.d_hist; label = "Data", color = :black)
     pdfs = get_pdf(LS.pdf)
     vks = valkeys(ps)
     binwidth = binedges(LS.d_hist) |> diff |> unique |> only
@@ -40,10 +40,9 @@ function Makie.plot!(input::PlotThing)
     end
 
     if length(pdfs) ≠ 1
-        lines!(input, LS.bcs, sum(normalizations .* predictions_of_pdfs); color= :tomato)
+        lines!(input, LS.bcs, sum(normalizations .* predictions_of_pdfs); color = :tomato)
     end
     return input
 end
 
 end
-

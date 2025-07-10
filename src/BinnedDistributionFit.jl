@@ -2,7 +2,7 @@ module BinnedDistributionFit
 
 import Distributions: pdf, cdf
 
-export ExtendPdf, SumOfPdfs, pdf
+export ExtendPdf, SumOfPdfs, pdf, LikelihoodSpec
 
 using FHist: Hist1D, binedges, bincenters, bincounts
 using ComponentArrays

@@ -12,3 +12,6 @@ docs/1/
 env
 node_modules
 .vscode
+docs/package.json
+docs/package-lock.json
+.gitignore

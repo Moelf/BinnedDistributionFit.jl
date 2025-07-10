@@ -9,10 +9,11 @@ function _integrate(func, hist::Hist1D, ::QuadGKIntegrator)
 end
 function _integrate(func, hist::Hist1D, ::TrapzIntegrator)
     lo, hi = extrema(binedges(hist))
-    sample_points = range(; start=lo, stop=hi, length=10*nbins(hist))
+    sample_points = range(; start = lo, stop = hi, length = 10 * nbins(hist))
     return trapz(sample_points, func.(sample_points))
 end
 function _integrate(func, hist::Hist1D, ::SimpleSumIntegrator)
     bcs = bincenters(hist)
     return sum(func.(bcs))
 end
+ß

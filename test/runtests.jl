@@ -1,11 +1,11 @@
 using TestItems, TestItemRunner
-@run_package_tests verbose=true
+@run_package_tests verbose = true
 
 @testitem "ExtendPdf" begin
-    d1 = ExtendPdf((x, _)->x, (1,3))
-    d2 = ExtendPdf((x, _)->abs2(x), (1,3))
-    d3 = ExtendPdf((x, _) -> xor((x << 2), x) % (x^2 + 1), (1,3))
-    
+    d1 = ExtendPdf((x, _) -> x, (1, 3))
+    d2 = ExtendPdf((x, _) -> abs2(x), (1, 3))
+    d3 = ExtendPdf((x, _) -> xor((x << 2), x) % (x^2 + 1), (1, 3))
+
     @test BinnedDistributionFit.scalar_eval(d1, 3) == 3
     @test BinnedDistributionFit.vector_eval(d1, [3, 5]) == [3, 5]
 
@@ -14,22 +14,22 @@ using TestItems, TestItemRunner
 
     @test BinnedDistributionFit.scalar_eval(d3, 3) == 5
     @test BinnedDistributionFit.vector_eval(d3, [3, 5]) == [5, 17]
-    end
+end
 
 @testitem "SumOfPdfs" begin
-    d1 = ExtendPdf((x, _)->x, (1,3))
-    d2 = ExtendPdf((x, _)->abs2(x), (1,3))
-    d3 = ExtendPdf((x, _) -> xor((x << 2), x) % (x^2 + 1), (1,3))
+    d1 = ExtendPdf((x, _) -> x, (1, 3))
+    d2 = ExtendPdf((x, _) -> abs2(x), (1, 3))
+    d3 = ExtendPdf((x, _) -> xor((x << 2), x) % (x^2 + 1), (1, 3))
 
-    @test BinnedDistributionFit.scalar_eval(d1+d2, 3) == 12
-    @test BinnedDistributionFit.vector_eval(d1+d2, [3, 5]) == [12, 30]
+    @test BinnedDistributionFit.scalar_eval(d1 + d2, 3) == 12
+    @test BinnedDistributionFit.vector_eval(d1 + d2, [3, 5]) == [12, 30]
 
-    @test BinnedDistributionFit.scalar_eval(d1+d3, 3) == 8
-    @test BinnedDistributionFit.vector_eval(d1+d3, [3, 5]) == [8, 22]
+    @test BinnedDistributionFit.scalar_eval(d1 + d3, 3) == 8
+    @test BinnedDistributionFit.vector_eval(d1 + d3, [3, 5]) == [8, 22]
 
-    @test BinnedDistributionFit.scalar_eval(d2+d3, 3) == 14
-    @test BinnedDistributionFit.vector_eval(d2+d3, [3, 5]) == [14, 42]
-    end
+    @test BinnedDistributionFit.scalar_eval(d2 + d3, 3) == 14
+    @test BinnedDistributionFit.vector_eval(d2 + d3, [3, 5]) == [14, 42]
+end
 @testitem "chi2" begin
     o1 = [1, 2, 3]
     o2 = [3, 2, 1]
@@ -43,8 +43,8 @@ using TestItems, TestItemRunner
     @test BinnedDistributionFit.chi2(o1, e1, sd1) == 0
     @test BinnedDistributionFit.chi2(o2, e1, sd1) ≈ 4.4444444444444
     @test BinnedDistributionFit.chi2(o3, e1, sd1) ≈ 102.44444444444
-    @test BinnedDistributionFit.chi2(o1, e2, sd1) ≈ 927.44444444444 
-    @test BinnedDistributionFit.chi2(o2, e2, sd1) == 819 
+    @test BinnedDistributionFit.chi2(o1, e2, sd1) ≈ 927.44444444444
+    @test BinnedDistributionFit.chi2(o2, e2, sd1) == 819
     @test BinnedDistributionFit.chi2(o3, e2, sd1) == 425
     @test BinnedDistributionFit.chi2(o1, e3, sd1) ≈ 18.694444444444
     @test BinnedDistributionFit.chi2(o2, e3, sd1) ≈ 8.0277777777777
@@ -54,7 +54,7 @@ using TestItems, TestItemRunner
     @test BinnedDistributionFit.chi2(o3, e1, sd2) == 1.94e6
     @test BinnedDistributionFit.chi2(o1, e2, sd2) == 1.214e7
     @test BinnedDistributionFit.chi2(o2, e2, sd2) == 1.134e7
-    @test BinnedDistributionFit.chi2(o3, e2, sd2) == 5e6
+    @test BinnedDistributionFit.chi2(o3, e2, sd2) == 5.0e6
     @test BinnedDistributionFit.chi2(o1, e3, sd2) == 290000
     @test BinnedDistributionFit.chi2(o2, e3, sd2) == 290000
     @test BinnedDistributionFit.chi2(o3, e3, sd2) == 750000
@@ -72,69 +72,69 @@ end
 @testitem "LikelihoodSpec ExtendPdf CSQ" begin
     using FHist, ComponentArrays
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
-    d1 = ExtendPdf((x, _) -> x-0.5, (1,3))
+    d1 = ExtendPdf((x, _) -> x - 0.5, (1, 3))
     h1 = Hist1D(; binedges = 1:3, bincounts = [1, 2], sumw2 = [1, 1])
-    x1 = BinnedDistributionFit.LikelihoodSpec(d1, h1; loss_type=BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
-    @test x1(ComponentVector(norms=[3.0], p1=[0])) == 0
+    x1 = BinnedDistributionFit.LikelihoodSpec(d1, h1; loss_type = BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test x1(ComponentVector(norms = [3.0], p1 = [0])) == 0
 
-    d2 = ExtendPdf((x, _) -> (x^2 - 3x + 1), (1,5))
+    d2 = ExtendPdf((x, _) -> (x^2 - 3x + 1), (1, 5))
     h2 = Hist1D(; binedges = 1:5, bincounts = [1, 2, 3, 4], sumw2 = [6, 2, 1, 5])
-    x2 = BinnedDistributionFit.LikelihoodSpec(d2, h2; loss_type=BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
-    @test x2(ComponentVector(norms=[2], p1=[0])) ≈ 9.2824829932
+    x2 = BinnedDistributionFit.LikelihoodSpec(d2, h2; loss_type = BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test x2(ComponentVector(norms = [2], p1 = [0])) ≈ 9.2824829932
 
-    d3 = ExtendPdf((x, _) -> (2^x - 3x^3 + 4 - 1/x), (1,11))
+    d3 = ExtendPdf((x, _) -> (2^x - 3x^3 + 4 - 1 / x), (1, 11))
     h3 = Hist1D(; binedges = 1:11, bincounts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sumw2 = [6, 2, 1, 5, 10, 0.1, 3, 6, 9, 3.2])
-    x3 = BinnedDistributionFit.LikelihoodSpec(d3, h3; loss_type=BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
-    @test x3(ComponentVector(norms=[2], p1=[0])) ≈ 415.959048958
+    x3 = BinnedDistributionFit.LikelihoodSpec(d3, h3; loss_type = BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test x3(ComponentVector(norms = [2], p1 = [0])) ≈ 415.959048958
 end
 
 @testitem "LikelihoodSpec SumOfPdfs CSQ" begin
     using FHist, ComponentArrays
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
-    d1 = ExtendPdf((x, _) -> x-0.5, (1, 4))
+    d1 = ExtendPdf((x, _) -> x - 0.5, (1, 4))
     d2 = ExtendPdf((x, _) -> 3x^2, (1, 4))
-    d3 = ExtendPdf((x, _) -> exp(2x)+sin(5x-3x^2), (1, 11))
+    d3 = ExtendPdf((x, _) -> exp(2x) + sin(5x - 3x^2), (1, 11))
     d4 = ExtendPdf((x, _) -> 3x^3 - 4x + 7, (1, 11))
     h1 = Hist1D(; binedges = 1:4, bincounts = [1, 2, 3], sumw2 = [1, 2, 1])
     h2 = Hist1D(; binedges = 1:11, bincounts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sumw2 = [5, 4, 3, 2, 1, 2, 3, 4, 5, 10])
-    x1 = BinnedDistributionFit.LikelihoodSpec(d1 + d2, h1; loss_type=BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
-    x2 = BinnedDistributionFit.LikelihoodSpec(d3 + d4, h2; loss_type=BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
-    @test x1(ComponentVector(norms=[3, 4], p1=[0], p2=[0])) ≈ 1.73774816049
-    @test x2(ComponentVector(norms=[5, 2.5], p1=[0], p2=[0])) ≈ 105.138115485
+    x1 = BinnedDistributionFit.LikelihoodSpec(d1 + d2, h1; loss_type = BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
+    x2 = BinnedDistributionFit.LikelihoodSpec(d3 + d4, h2; loss_type = BinnedDistributionFit.CSQ(), num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test x1(ComponentVector(norms = [3, 4], p1 = [0], p2 = [0])) ≈ 1.73774816049
+    @test x2(ComponentVector(norms = [5, 2.5], p1 = [0], p2 = [0])) ≈ 105.138115485
 end
 
 @testitem "LikelihoodSpec ExtendPdf NLL" begin
     using FHist, ComponentArrays
-    d1 = ExtendPdf((x, _)-> x, (1,3))
-    h1 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
-    NF1 = BinnedDistributionFit.LikelihoodSpec(d1, h1; num_int=BinnedDistributionFit.QuadGKIntegrator())
-    @test NF1(ComponentVector(norms=[2.0], p1=[0])) ≈ 1.6827899396467232
+    d1 = ExtendPdf((x, _) -> x, (1, 3))
+    h1 = Hist1D(; binedges = 1:3, bincounts = [2.0, 4.0], sumw2 = [2.0, 4.0])
+    NF1 = BinnedDistributionFit.LikelihoodSpec(d1, h1; num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test NF1(ComponentVector(norms = [2.0], p1 = [0])) ≈ 1.6827899396467232
 
-    d2 = ExtendPdf((x, _)-> abs2(x), (1,3))
-    h2 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
-    NF2 = BinnedDistributionFit.LikelihoodSpec(d2, h2; num_int=BinnedDistributionFit.QuadGKIntegrator())
-    @test NF2(ComponentVector(norms=[2.0], p1=[0])) ≈ 1.84583612533
+    d2 = ExtendPdf((x, _) -> abs2(x), (1, 3))
+    h2 = Hist1D(; binedges = 1:3, bincounts = [2.0, 4.0], sumw2 = [2.0, 4.0])
+    NF2 = BinnedDistributionFit.LikelihoodSpec(d2, h2; num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test NF2(ComponentVector(norms = [2.0], p1 = [0])) ≈ 1.84583612533
 
-    d3 = ExtendPdf((x, _)-> exp(x) - abs2(x) + 3, (1,3))
-    h3 = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
-    NF3 = BinnedDistributionFit.LikelihoodSpec(d3, h3; num_int=BinnedDistributionFit.QuadGKIntegrator())
-    @test NF3(ComponentVector(norms=[2.0], p1=[0])) ≈ 1.90019114214
+    d3 = ExtendPdf((x, _) -> exp(x) - abs2(x) + 3, (1, 3))
+    h3 = Hist1D(; binedges = 1:3, bincounts = [2.0, 4.0], sumw2 = [2.0, 4.0])
+    NF3 = BinnedDistributionFit.LikelihoodSpec(d3, h3; num_int = BinnedDistributionFit.QuadGKIntegrator())
+    @test NF3(ComponentVector(norms = [2.0], p1 = [0])) ≈ 1.90019114214
 end
 
 @testitem "LikelihoodSpec SumOfPdfs NLL" begin
     using FHist, ComponentArrays
-    d1 = ExtendPdf((x, _) -> x, (1,3))
-    d2 = ExtendPdf((x, _) -> x^2, (1,3))
-    d3 = ExtendPdf((x, _) -> exp(x) - abs2(3x - 1) + 3, (1,3))
+    d1 = ExtendPdf((x, _) -> x, (1, 3))
+    d2 = ExtendPdf((x, _) -> x^2, (1, 3))
+    d3 = ExtendPdf((x, _) -> exp(x) - abs2(3x - 1) + 3, (1, 3))
     h1 = Hist1D(; binedges = 1:3, bincounts = [2.0, 4.0], sumw2 = [2.0, 4.0])
     h2 = Hist1D(; binedges = 1:3, bincounts = [10.0, 1.0], sumw2 = [1.0, 100.0])
     NF1 = BinnedDistributionFit.LikelihoodSpec(d1 + d2, h1; num_int = BinnedDistributionFit.QuadGKIntegrator())
     NF2 = BinnedDistributionFit.LikelihoodSpec(d1 + d3, h1; num_int = BinnedDistributionFit.QuadGKIntegrator())
     NF3 = BinnedDistributionFit.LikelihoodSpec(d2 + d3, h1; num_int = BinnedDistributionFit.QuadGKIntegrator())
 
-    @test NF1(ComponentVector(norms=[2.0,0.5], p1=[0], p2=[0])) ≈ 0.8497340452248006
-    @test NF2(ComponentVector(norms=[2.0,0.5], p1=[0], p2=[0])) ≈ 0.850801892114
-    @test NF3(ComponentVector(norms=[2.0,0.5], p1=[0], p2=[0])) ≈ 1.07158581388
+    @test NF1(ComponentVector(norms = [2.0, 0.5], p1 = [0], p2 = [0])) ≈ 0.8497340452248006
+    @test NF2(ComponentVector(norms = [2.0, 0.5], p1 = [0], p2 = [0])) ≈ 0.850801892114
+    @test NF3(ComponentVector(norms = [2.0, 0.5], p1 = [0], p2 = [0])) ≈ 1.07158581388
 end
 
 include("optimization.jl")
