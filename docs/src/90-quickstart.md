@@ -131,14 +131,13 @@ pdf_input = BinnedDistributionFit.ExtendPdf(f, (0,100))
 
 # Creating the actual object that will be optimized and wraps it
 NLL = BinnedDistributionFit.LikelihoodSpec(pdf_input, hist)
-NLL_wrapper(x, _) = NLL(x)
 
 # This will act as our initial guesses for the values of the parameters and an overall norm.
 # Note that each vector element of parameter ComponentArrays must be of type Vector{float}
 para_guess = ComponentArray(norm = [47000.], p1 = [70., 30.])
 
 # Defines the optimization function and problem within the Optimization.jl format
-opt_f = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
+opt_f = OptimizationFunction(NLL, AutoForwardDiff())
 opt_p = OptimizationProblem(opt_f, para_guess)
 
 sol = solve(opt_p, Optimization.LBFGS())
