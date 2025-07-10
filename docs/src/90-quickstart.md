@@ -115,6 +115,7 @@ x([[3, 4], [], []])
 
 ```@example Plotting_Example
 using Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+using ComponentArrays, FHist # hide
 CairoMakie.activate!(; type="svg") # hide
 
 # Creating our sample data and sampling 5,000 points from it
