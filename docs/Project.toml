@@ -6,6 +6,7 @@ DocumenterVitepress = "4710194d-e776-4893-9690-8d956a29c365"
 LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Optimization = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 
 [compat]
 Documenter = "1.13"
@@ -14,3 +15,4 @@ LiveServer = "1.5"
 Optimization = "4.4.0"
 ForwardDiff = "1.0.1"
 CairoMakie = "0.15"
+Distributions = "0.25.118"
