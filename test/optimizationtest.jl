@@ -4,16 +4,15 @@
 
     function compare_chi2_NLL(d, h1, ps)
         support = extrema(binedges(h1))
-        NF = BinnedDistributionFit.chi2_functor(ExtendPdf(d, support), h1)
-        NF_wrapper(x, _) = NF(x)
+        NF = BinnedDistributionFit.LikelihoodSpec(ExtendPdf(d, support), h1; loss_type = BinnedDistributionFit.CSQ())
 
-        optf = OptimizationFunction(NF_wrapper, AutoForwardDiff())
-        prob = OptimizationProblem(optf, [integral(h1); ps])
+        optf = OptimizationFunction(NF, AutoForwardDiff())
+        prob = OptimizationProblem(optf, ComponentArray(norms = [integral(h1)], p1 = ps))
         sol = solve(prob, Optimization.LBFGS())
 
         NLL = BinnedDistributionFit.LikelihoodSpec(ExtendPdf(d, support), h1)
         optf2 = OptimizationFunction(NLL, AutoForwardDiff())
-        prob2 = OptimizationProblem(optf2, ComponentArray(a = [integral(h1)], b = ps))
+        prob2 = OptimizationProblem(optf2, ComponentArray(norms = [integral(h1)], p1 = ps))
         sol2 = solve(prob2, Optimization.LBFGS())
 
         return sol.u, sol2.u

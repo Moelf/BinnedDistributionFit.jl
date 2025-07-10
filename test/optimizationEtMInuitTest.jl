@@ -1,5 +1,5 @@
 @testitem "optimization.jl optimization" begin
-    using FHist, ComponentArrays, Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+    using FHist, ComponentArrays, Optimization, ForwardDiff, Distributions, BinnedDistributionFit
     N = Normal(100.0, 5.0)
     N_gaus_truth = 50000
     dat1 = rand(N, N_gaus_truth)
@@ -28,12 +28,10 @@
 
     para_truth = ComponentArray(norms = [N_exp_truth, N_gaus_truth], p1 = [50.0], p2 = [100.0, 5.0])
     @test all(isapprox.(sol.u, para_truth; rtol=0.1))
-    @show para_truth
-    @show sol.u
 end
 
 @testitem "minuit optimization" begin
-    using FHist, ComponentArrays, Distributions, CairoMakie, BinnedDistributionFit, Minuit2
+    using FHist, ComponentArrays, Distributions, BinnedDistributionFit, Minuit2
     N = Normal(100.0, 5.0)
     N_gaus_truth = 5000
     dat1 = rand(N, N_gaus_truth)

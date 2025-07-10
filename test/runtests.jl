@@ -136,8 +136,6 @@ end
     @test NF3(ComponentVector(norms = [2.0, 0.5], p1 = [0], p2 = [0])) ≈ 1.07158581388
 end
 
-include("optimization.jl")
-
 @testitem "_" begin
     using Aqua
     Aqua.test_all(BinnedDistributionFit)

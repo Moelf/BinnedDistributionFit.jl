@@ -113,8 +113,9 @@ x([[3, 4], [], []])
 
 ## Usage with Optimization.jl
 
-```julia
+```@example Plotting Example
 using Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+CairoMakie.activate!(; type="svg") # hide
 
 # Creating our sample data and sampling 5,000 points from it
 L_dist = Laplace(50, 20)
@@ -143,5 +144,6 @@ sol = solve(opt_p, Optimization.LBFGS())
 
 # Graphing the data and the optimized function
 fig = BinnedDistributionFit.plotthing(NLL, sol.u)
+
+fig # hide
 ```
-[INSERT IMAGE HERE]
