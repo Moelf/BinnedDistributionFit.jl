@@ -125,7 +125,7 @@ L_data = rand(L_dist, 50000)
 f(x, ps) = pdf(Laplace(ps[1], ps[2]), x)
 
 # Wrapping our data and pdf into the proper form for LikelihoodSpec
-hist = Hist1D(L_data; binedges = 0:100)
+hist = BinnedDistributionFit.Hist1D(L_data; binedges = 0:100)
 pdf_input = BinnedDistributionFit.ExtendPdf(f, (0,100))
 
 # Creating the actual object that will be optimized and wraps it
