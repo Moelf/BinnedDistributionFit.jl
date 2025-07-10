@@ -71,6 +71,8 @@ end
 
 @testitem "LikelihoodSpec ExtendPdf CSQ" begin
     using FHist, ComponentArrays
+@testitem "LikelihoodSpec ExtendPdf CSQ" begin
+    using FHist, ComponentArrays
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2
     d1 = ExtendPdf((x, _) -> x - 0.5, (1, 3))
     h1 = Hist1D(; binedges = 1:3, bincounts = [1, 2], sumw2 = [1, 1])
@@ -88,6 +90,8 @@ end
     @test x3(ComponentVector(norms = [2], p1 = [0])) ≈ 415.959048958
 end
 
+@testitem "LikelihoodSpec SumOfPdfs CSQ" begin
+    using FHist, ComponentArrays
 @testitem "LikelihoodSpec SumOfPdfs CSQ" begin
     using FHist, ComponentArrays
     # https://www.desmos.com/calculator/mbj4cblgzr finds manual solutions to BinnedDistributionFit.chi2

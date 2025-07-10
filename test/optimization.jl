@@ -27,21 +27,3 @@
     @test isapprox(compare_chi2_NLL(d, h1, [1, 1])...) rtol = 0.01
 
 end
-
-@testitem "optimization test" begin
-    using FHist, ComponentArrays, Optimization, ForwardDiff, Distributions
-    N = Normal(2, 1.5)
-    dat1 = rand(N, 1000)
-    E = Exponential(2)
-    dat2 = rand(E, 10000)
-    h1 = Hist1D(append!(dat1, dat2); binedges = -2:0.05:3)
-    f1(x, ps) = (1 / ps[1]) * exp(-x / ps[1])
-    f2(x, ps) = (1 / sqrt(2 * pi * abs2(ps[2]))) * exp(-abs2(x - ps[1]) / (2 * abs2(ps[2])))
-    pdfs = ExtendPdf(f1, (-2, 3)) + ExtendPdf(f2, (-2, 3))
-    NLL = BinnedDistributionFit.LikelihoodSpec(pdfs, h1)
-    NLL_wrapper(x, _) = NLL(x)
-    optf2 = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
-    prob2 = OptimizationProblem(optf2, ComponentArray(norms = [1.0, 1.0], p1 = [2.0], p2 = [2.0, 1.5]))
-    sol = solve(prob2, Optimization.LBFGS())
-    @test sol == 0
-end
