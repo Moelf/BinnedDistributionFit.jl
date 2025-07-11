@@ -28,8 +28,10 @@ Documentation for [BinnedDistributionFit](https://github.com/Moelf/BinnedDistrib
 
 
 # What is BinnedDistributionFit?
-BinnedDistributionFit is a package which defines several loss functions to compare probability density functions (pdfs) or sums thereof to specific histogram data. BinnedDistributionFit supports any number of independently normalized pdfs. Either negative log likelihood or chi squared regressions can be used.
+BinnedDistributionFit is a package which defines several loss functions to compare probability density functions (pdfs) or sums thereof to specific histogram data. BinnedDistributionFit supports any number of independently normalized pdfs. Either negative log likelihood or chi squared regressions may be used.
 
 # Mathematical Background
 
-[insert equations]
+```math
+\sum
+```

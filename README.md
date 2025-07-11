@@ -21,9 +21,8 @@ function fit_pdf_to_hist(hist::Hist1D, pdf, guess::Vector)
     support = extrema(binedges(hist))
 
     NLL = LikelihoodSpec(ExtendPdf(pdf, support), hist)
-    NLL_wrapper(x,_) = NLL(x)
 
-    opt_f = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
+    opt_f = OptimizationFunction(NLL, AutoForwardDiff())
     opt_p = OptimizationProblem(opt_f, ComponentArray(norms = integral(hist), p1 = guess))
     sol = solve(opt_p, Optimization.LBFGS())
 
