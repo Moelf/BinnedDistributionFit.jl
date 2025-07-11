@@ -4,8 +4,8 @@
 Computes the negative log-likelihood for a binned distribution fit.
 - `normalized_predictions`: A vector of normalized prediction at each bin-center.
 - `observations`: A vector of observed values at each bin-center.
-- `normalization`: A scalar value for normalization. Conceptually equal to the pdf generateing `predictions` integrated over the domain.
-
+- `normalization`: A scalar value for normalization. Conceptually equal to the pdf generating `predictions` integrated over the domain.
+This is an internal function which is automatically used in `LikelihoodSpec`.
 """
 function RooFitNLL_internal(normalized_predictions, observations; normalization)
     if any(≤(0), normalized_predictions)
@@ -85,7 +85,7 @@ struct CSQ <: LossFunction end
 """
     LikelihoodSpec(pdf, d_hist; loss_type=NLL(), num_int=SimpleSumIntegrator())
 
-A type constructor representing a set of pdfs and binned histogram data. Method of calculating loss function and integration method may be specified in keyword arguments.
+A type constructor for a set of pdfs and binned histogram data. Method of calculating loss function and integration method may be specified in keyword arguments.
 `pdf` must be an `ExtendPdf` or `SumOfPdfs`. `d_hist` 
 """
 struct LikelihoodSpec{LF <: LossFunction, p <: AbstractPdf, h <: Hist1D, V <: AbstractVector, NI <: NumericalIntegrator} <: Function
