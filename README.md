@@ -14,7 +14,7 @@ every evaluating point. We then package that with a user defined histogram using
 
 ## Quick Start
 The following code provides a framework for optimizing a single function with any number of parameters. The guess must be relatively close to the real parameters. 
-```jldoctest
+```julia
 using BinnedDistributionFit, FHist, Optimization, ForwardDiff, ComponentArrays
 
 function fit_pdf_to_hist(hist::Hist1D, pdf, guess::Vector)
