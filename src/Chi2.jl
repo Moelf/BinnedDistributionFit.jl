@@ -2,10 +2,10 @@ using FHist
 
 """
     chi2(obs, expected, sd)
-computes stuff in stuff and stuff
+Computes the chi squared statistic for given vectors of observed and expected values. Returns `Inf` if any standard deviation is not a positive number.
 """
 function chi2(obs, expected, sd)
-    return sum(@. abs2((obs - expected) / sd))
+    return all(i -> i > 0, sd) ? sum(@. abs2((obs - expected) / sd)) : Inf
 end
 
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)

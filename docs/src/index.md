@@ -35,5 +35,3 @@ BinnedDistributionFit is a package which defines several loss functions to compa
 ```math
 \sum
 ```
-
-!!! note do the thing

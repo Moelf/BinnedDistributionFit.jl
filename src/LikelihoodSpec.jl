@@ -86,7 +86,7 @@ struct CSQ <: LossFunction end
     LikelihoodSpec(pdf, d_hist; loss_type=NLL(), num_int=SimpleSumIntegrator())
 
 A type constructor for a set of pdfs and binned histogram data. Method of calculating loss function and integration method may be specified in keyword arguments.
-`pdf` must be an `ExtendPdf` or `SumOfPdfs`. `d_hist` 
+`pdf` must be an `ExtendPdf` or `SumOfPdfs`, and `d_hist` must be a 'Hist1D`. 
 """
 struct LikelihoodSpec{LF <: LossFunction, p <: AbstractPdf, h <: Hist1D, V <: AbstractVector, NI <: NumericalIntegrator} <: Function
     loss_type::LF
@@ -113,6 +113,10 @@ function get_pdf(pdfs::SumOfPdfs)
     return pdfs.pdfs
 end
 
+"""
+    (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
+Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` with a specific set of parameters `nps`. This method takes `nps` to be a `Vector{Vector}`.
+"""
 function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
     norms, vps... = nps
     overall_norm = sum(norms)
@@ -136,6 +140,10 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
 
+"""
+    (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
+Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` with a specific set of parameters `nps`. This method takes `nps` to be a `ComponentVector`.
+"""
 function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
