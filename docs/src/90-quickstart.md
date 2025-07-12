@@ -7,12 +7,13 @@ h =             # <-- Enter histogram here as an FHist histogram
 
 support = extrema(binedges(h1))
 
-NLL = BinnedDistributionFit.RooFitNLL_functor(ExtendPdf(d, support), h1)
+NLL = LikelihoodSpec(ExtendPdf(d, support), h1)
 NLL_wrapper(x,_) = NLL(x)
 
 optf = OptimizationFunction(NLL_wrapper, AutoForwardDiff())
-prob = OptimizationProblem(optf, [integral(h); ps])
+prob = OptimizationProblem(optf, ComponentArray(norms=integral(h),p1=ps))
 sol = solve(prob, Optimization.LBFGS())
+
 sol
 # Answer comes out here
 ```
@@ -108,4 +109,49 @@ x = BinnedDistributionFit.chi2_functor(d1 + d2, h; num_integrator = BinnedDistri
 
 x([[3, 4], [], []])
 # Output: 1.73774816049
+```
+
+## Usage with Optimization.jl
+`BinnedDistributionFit` can integrate with various optimization packages. This example shows how to fit and graph one pdf using `Optimization` and `CairoMakie `. First, we can create sample data data and choose 5,0000 random points from it.
+```@setup Plotting_Example
+using Optimization, ForwardDiff, Distributions, CairoMakie, BinnedDistributionFit
+using ComponentArrays, FHist
+CairoMakie.activate!(; type="svg")
+```
+```@example Plotting_Example; continued = true
+L_dist = Laplace(50, 20)
+L_data = rand(L_dist, 50000)
+```
+Since we know the shape of the data, we can use a Laplace distribution as our function. We then create a pdf with two unknown parameters, both stored in the vector ps.
+```@example Plotting_Example; continued = true
+f(x, ps) = pdf(Laplace(ps[1], ps[2]), x)
+```
+We then use the core components of the `BinnedDistributionFit` package: `ExtendPdf` and `LikelihoodSpec`. We create a histogram to wrap the data we generated and then wrap that and the `ExtendPdf` into `LikelihoodSpec`, our loss function.
+```@example Plotting_Example; continued = true
+hist = BinnedDistributionFit.Hist1D(L_data; binedges = 0:100)
+pdf_input = BinnedDistributionFit.ExtendPdf(f, (0,100))
+
+NLL = BinnedDistributionFit.LikelihoodSpec(pdf_input, hist) 
+```
+We then generate an initial guesses for the values of the parameters and an overall norm. Note that each element of the 'ComponentArray' must be of type `Vector{float}`.
+```@example Plotting_Example; continued = true
+para_guess = ComponentArray(norm = [47000.], p1 = [70., 30.])
+```
+Using the `Optimization` package we define the function and problem to optimize.
+```@example Plotting_Example; continued = true
+opt_f = OptimizationFunction(NLL, AutoForwardDiff())
+opt_p = OptimizationProblem(
+    opt_f, para_guess;
+    # lower and upper bounds on the parameters
+    lb = ComponentArray(norm = [eps()], p1 = [eps(), eps()]), 
+    ub = ComponentArray(norm = [100000], p1 = [100, 50])
+)
+
+sol = solve(opt_p, Optimization.LBFGS())
+```
+Finally, we can use the `BinnedDistributionFit` extension of `Makie` to plot the fitted pdf and the histogram.
+```@example Plotting_Example
+fig = BinnedDistributionFit.plotthing(NLL, sol.u)
+
+fig # hide
 ```

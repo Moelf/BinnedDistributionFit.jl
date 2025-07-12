@@ -2,7 +2,7 @@ module BinnedDistributionFit
 
 import Distributions: pdf, cdf
 
-export ExtendPdf, SumOfPdfs, pdf
+export ExtendPdf, SumOfPdfs, pdf, LikelihoodSpec
 
 using FHist: Hist1D, binedges, bincenters, bincounts
 using ComponentArrays
@@ -149,7 +149,7 @@ function scalar_eval(d::SumOfPdfs, x, vps=fill(nothing, length(d.pdfs)); kw...)
 end
 
 """
-    vector_eval((d::SumOfPdfs, x::AbstractVector, vps::Vector{Vector}; kw...))
+    vector_eval(d::SumOfPdfs, x::AbstractVector, vps::Vector{Vector}; kw...)
 Evaluates the sum of pdfs over an array of points. `vps` needs to be a vector of vectors of parameters because each pdf in the sum has its own set of parameters.
 
 For example, if we have two pdfs `pdf1` and `pdf2` with parameters `params1` and `params2`, respectively, we can evaluate the sum of the pdfs over an array point `[a, b, c]` as follows:

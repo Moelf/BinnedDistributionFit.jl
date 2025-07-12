@@ -10,31 +10,36 @@ We try to cover a core set of usages common in HEP, namely, fitting one or multi
 Chi2  or Likelihood objective.
 
 Conceptually, given user defined function ("shape"), we can treat it as if it's a PDF by numerically normalizing it at
-every evaluating point.
+every evaluating point. We then package that with a user defined histogram using the FHist package which can be used with an optimization or plotting package.
 
-## Sum of user-defined PDFs
+## Quick Start
+The following code provides a framework for optimizing a single function with any number of parameters. The guess must be relatively close to the real parameters. 
 ```julia
-using BinnedDistributionFit, FHist
+using BinnedDistributionFit, FHist, Optimization, ForwardDiff, ComponentArrays
 
-# user defined functions
-julia> f(x,ps) = x + ps[1] + ps[2]*x
+function fit_pdf_to_hist(hist::Hist1D, pdf, guess::Vector)
+    support = extrema(binedges(hist))
 
-julia> g(x,ps) = ps[1] + ps[3]
+    NLL = LikelihoodSpec(ExtendPdf(pdf, support), hist)
 
-# SumOfPdfs
-julia> sd = ExtendPdf(f, (1,3)) + ExtendPdf(g, (1,3))
+    opt_f = OptimizationFunction(NLL, AutoForwardDiff())
+    opt_p = OptimizationProblem(opt_f, ComponentArray(norms = integral(hist), p1 = guess))
+    sol = solve(opt_p, Optimization.LBFGS())
 
-# data histogram
-julia> h = Hist1D(; binedges=1:3, bincounts=[2.0, 4.0], sumw2=[2.0, 4.0])
-edges: [1.0, 2.0, 3.0]
-bin counts: [2.0, 4.0]
-total count: 6.0
+    return sol.u
+end
 
-julia> NF = RooFitNLL_functor(sd, h; num_integrator=BinnedDistributionFit.QuadGKIntegrator())
+# Example
 
-# the functor takes vector of N+1 vectors as input, the first vector keeps track of the normalization for each of the N pdfs, the rest are the parameters for each user-defined pdf
-julia> NF([[2.0, 3.0], [6.0, 7.0], [1.0, 5.0, 9.0]])
--0.627546320921633
+hist = Hist1D(; binedges=1:2:21, bincounts=[1:4; 1; 6:10])
+pdf_input(x, ps) = ps[1]*x + ps[2]
+guess = [5, 5]
+
+fit_pdf_to_hist(hist, pdf_input, guess)
+
+# output
+
+ComponentVector{Float64}(norms = 51.0, p1 = [6.975319732308675, -0.8718290560996027])
 ```
 
 ## Math for One PDF fitting to Data: (i.e. `ExtendPdf`)

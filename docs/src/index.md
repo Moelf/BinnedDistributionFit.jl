@@ -28,10 +28,16 @@ Documentation for [BinnedDistributionFit](https://github.com/Moelf/BinnedDistrib
 
 
 # What is BinnedDistributionFit?
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam facilisis, elit sit amet suscipit porta, purus sem blandit neque, sed molestie leo ligula in leo. Maecenas rhoncus lorem pretium porta aliquam. Praesent mattis elit id neque faucibus faucibus. Aenean lobortis odio orci, a scelerisque ligula pellentesque quis. Donec placerat varius nisi eget efficitur. In eget maximus ipsum. Duis pellentesque sodales efficitur. Nam tempus augue non congue ullamcorper.
+BinnedDistributionFit is a package which defines several loss functions to compare probability density functions (pdfs) or sums thereof to specific histogram data. BinnedDistributionFit supports any number of independently normalized pdfs. Either negative log likelihood or chi squared regressions may be used.
 
-Sed rhoncus porta justo sed scelerisque. Sed consectetur dolor vitae nibh hendrerit porttitor. Integer ac urna gravida, ullamcorper velit a, ullamcorper nisl. Etiam pretium velit at fringilla commodo. Proin ut consequat mi. Proin id massa nisi. Maecenas sed lacus nec risus malesuada ultrices. Suspendisse faucibus, turpis placerat tincidunt mollis, turpis magna dapibus lacus, et pellentesque massa tortor non justo. Nullam lobortis ullamcorper egestas. Suspendisse vitae porta magna. Etiam vitae malesuada tortor, ac interdum erat. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+# Mathematical Background
+`BinnedDistributionFit` supports two methods for calculating likelihood: Negative log likelihood and the chi squared test.
 
-# Basic usage
+## Negative Log Likelihood function
+Given a histogram and a pdf, we can compare the differences between each observed and expected value over the support (domain) of the pdf using likelihood as a measurement of error. We use negative log likelihood since this simplifies the calculation of the overall likelihood by reducing the product of each points likelihood to the sum of the logs of their likelihoods, and we negate the likelihood to format this properly to act as a minimization problem.
 
-\[insert how to use\]
+With histogram data ``y`` at each of a set of points ``x_i`` over the support, we can perform our evaluation like so with 
+```math
+-\ln(\mathcal{L})=-\sum_{i=1}^{N_{\text{bins}}}y_i\ln\left(\frac{1}{N_{\text{expected}}}\sum_{j=1}^{N_{\text{pdfs}}}\frac{N_i\cdot\text{UserPdf}_i(x_i,\text{parameters})}{\int_S\text{UserPdf}_i(x,\text{parameters})dx}\right)-\left(N_{\text{observed}}\ln N_{\text{expected}}-N_{\text{expected}}\right).
+```
+where ``N_{\text{observed}}=\sum y_i`` and ``N_{\text{expected}}`` is the sum of all of the norms (``N_i``) of each pdf. ``N_{\text{bins}}`` and ``N_{\text{pdfs}}`` represent the number of bins and the number of pdfs respectively. 

@@ -2,45 +2,60 @@ using FHist
 
 """
     chi2(obs, expected, sd)
-computes stuff in stuff and stuff
+Computes the chi squared statistic for given vectors of observed and expected values. Returns `Inf` if any standard deviation is not a positive number.
 """
-function chi2(obs, expected, sd) 
-    return sum(@. abs2((obs - expected)/sd))
+function chi2(obs, expected, sd)
+    return all(i -> i > 0, sd) ? sum(@. abs2((obs - expected) / sd)) : Inf
 end
 
-function chi2_functor(d::ExtendPdf, data_hist::Hist1D; num_integrator = SimpleSumIntegrator())
-    bes, bcs, ber = binedges(data_hist), bincenters(data_hist), binerrors(data_hist)
-    obs = bincounts(data_hist)
-    @assert extrema(bes) == extrema(d.support) "The support of the distribution must match the bin edges of the histogram."
-    
-    function (norm_and_ps; kw...)
-        norm, ps... = norm_and_ps
-        expected = vector_eval(d, bcs, ps; kw...)
-        oneD_func(x) = scalar_eval(d, x, ps; kw...)
-        normedExp =  expected ./ _integrate(oneD_func, data_hist, num_integrator)
-        return chi2(obs, norm * normedExp, ber)
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)
+    ber = binerrors(NLL2.d_hist)
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != length(pdfs)
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+    integrals_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        oneD_func(x) = scalar_eval(d, x, p0; kw...)
+        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+    end
+    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        vector_eval(d, NLL2.bcs, p0, kw...)
+    end
+    overall_norms = sum(norms)
+    normed_predictions = sum(abs2.(norms) / overall_norms .* predictions_of_pdfs ./ integrals_of_pdfs)
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, ber)
 end
 
-function chi2_functor(d::SumOfPdfs, data_hist::Hist1D; num_integrator = SimpleSumIntegrator())
-    bes, bcs, ber = binedges(data_hist), bincenters(data_hist), binerrors(data_hist)
-    obs = bincounts(data_hist)
-    @assert extrema(bes) == extrema(d.support) "The support of the distribution must match the bin edges of the histogram."
-    function (norms_and_vps; kw...)
-        norms, vps... = norms_and_vps
-
-        if length(norms) != length(d.pdfs)
-            throw(ArgumentError("Expected $(length(d.pdfs)) normalizations, got $(length(norms))"))
-        end
-        integrals_of_pdfs = map(d.pdfs, vps) do d, ps
-            oneD_func(x) = scalar_eval(d, x, ps; kw...)
-            _integrate(oneD_func, data_hist, num_integrator)
-        end
-        predictions_of_pdfs =  map(d.pdfs, vps) do d, ps
-            vector_eval(d, bcs, ps; kw...)
-        end
-        overall_norms = sum(norms)
-        normed_predictions = sum(abs2.(norms) / overall_norms .* predictions_of_pdfs ./ integrals_of_pdfs)
-        return chi2(obs, normed_predictions, ber)
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, _dummy; kw...)
+    ber = binerrors(NLL2.d_hist)
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != length(pdfs)
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+    integrals_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        oneD_func(x) = scalar_eval(d, x, p0; kw...)
+        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+    end
+    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+        p0 = getproperty(nps, ps)
+        vector_eval(d, NLL2.bcs, p0, kw...)
+    end
+    overall_norms = sum(norms)
+    normed_predictions = sum(abs2.(norms) / overall_norms .* predictions_of_pdfs ./ integrals_of_pdfs)
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, ber)
 end
