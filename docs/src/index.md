@@ -53,3 +53,4 @@ Compared to the NLL function, the chi squared measure of error is much simpler. 
 \chi^2 = \sum_{i=1}^{N_{\text{bins}}}\frac{\left(y_i-\sum_{j=1}^{N_{\text{pdfs}}}\frac{N_i^2\cdot\text{UserPdf}_i(x_i,\text{parameters})}{N_{\text{expected}}\cdot\int_S\text{UserPdf}_i(x,\text{parameters})dx}\right)^2}{\sigma_i^2}.
 ```
 This formulation uses the same variables as the previous equation.
+

@@ -88,7 +88,7 @@ struct CSQ <: LossFunction end
 A type constructor for a set of pdfs and binned histogram data. Method of calculating loss function and integration method may be specified in keyword arguments.
 `pdf` must be an `ExtendPdf` or `SumOfPdfs`, and `d_hist` must be a 'Hist1D`. 
 """
-mutable struct LikelihoodSpec{LF <: LossFunction, p <: AbstractPdf, h <: Hist1D, V <: AbstractVector, NI <: NumericalIntegrator} <: Function
+struct LikelihoodSpec{LF <: LossFunction, p <: AbstractPdf, h <: Hist1D, V <: AbstractVector, NI <: NumericalIntegrator} <: Function
     loss_type::LF
     pdf::p
     d_hist::h
