@@ -36,7 +36,7 @@ BinnedDistributionFit is a package which defines several loss functions to compa
 ## Negative Log Likelihood function
 Given a histogram and a pdf, we can compare the differences between each observed and expected value over the support (domain) of the pdf using likelihood as a measurement of error. We use negative log likelihood since this simplifies the calculation of the overall likelihood by reducing the product of each points likelihood to the sum of the logs of their likelihoods, and we negate the likelihood to format this properly to act as a minimization problem.
 
-With histogram data ``y`` at each of a set of points ``x_i`` over the support, we can perform our evaluation like so with 
+With histogram data ``y`` at each of a set of points ``x_i`` on the support ``S``, we can perform our evaluation like so 
 ```math
 -\ln(\mathcal{L})=-\sum_{i=1}^{N_{\text{bins}}}y_i\ln\left(\frac{1}{N_{\text{expected}}}\sum_{j=1}^{N_{\text{pdfs}}}\frac{N_i\cdot\text{UserPdf}_i(x_i,\text{parameters})}{\int_S\text{UserPdf}_i(x,\text{parameters})dx}\right)-\left(N_{\text{observed}}\ln N_{\text{expected}}-N_{\text{expected}}\right).
 ```
