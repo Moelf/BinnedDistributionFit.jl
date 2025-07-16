@@ -115,7 +115,7 @@ end
 
 """
     (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
-Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` with a specific set of parameters `nps`. This method takes `nps` to be a `Vector{Vector}`.
+Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` via negative log likelihood with a specific set of parameters `nps`. This method takes `nps` to be a `Vector{Vector}`.
 """
 function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
     norms, vps... = nps
@@ -123,6 +123,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
     fractions_of_pdfs = norms ./ overall_norm
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -139,7 +140,7 @@ end
 
 """
     (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
-Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` with a specific set of parameters `nps`. This method takes `nps` to be a `ComponentVector`.
+Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` via negative log likelihood with a specific set of parameters `nps`. This method takes `nps` to be a `ComponentArray`.
 """
 function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
     vks = valkeys(nps)
@@ -148,6 +149,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
     fractions_of_pdfs = norms ./ overall_norm
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -169,6 +171,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, _dummy; kw...)
     fractions_of_pdfs = norms ./ overall_norm
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -187,11 +190,13 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, fixed::Vector; kw...)
     for i in fixed
         nps[i[1]][i[2]] = i[3]
     end
+
     norms, vps... = nps
     overall_norm = sum(norms)
     fractions_of_pdfs = norms ./ overall_norm
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -213,6 +218,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, _dummy; kw...)
     fractions_of_pdfs = norms ./ overall_norm
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -232,12 +238,14 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, fixed::Vector; kw..
     for i in fixed
         nps[i[1]] = i[2]
     end
+
     vks = valkeys(nps)
     norms = nps[vks[begin]]
     overall_norm = sum(norms)
     fractions_of_pdfs = norms ./ overall_norm
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
