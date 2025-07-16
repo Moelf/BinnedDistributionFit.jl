@@ -8,54 +8,144 @@ function chi2(obs, expected, sd)
     return all(i -> i > 0, sd) ? sum(@. abs2((obs - expected) / sd)) : Inf
 end
 
-function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)
-    ber = binerrors(NLL2.d_hist)
-    vks = valkeys(nps)
-    norms = nps[vks[begin]]
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector; kw...)
+    norms, vps... = nps
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
-    if length(norms) != length(pdfs)
+    
+    if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
     if length(vks) - 1 != Npdfs
         throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
     end
-    integrals_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+
+    normed_predictions = mapreduce(+, pdfs, vps, abs2.(norms) / sum(norms)) do d, ps, fop
         p0 = getproperty(nps, ps)
-        oneD_func(x) = scalar_eval(d, x, p0; kw...)
-        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+
+        (fop .* vector_eval(d, NLL2.bcs, p0; kw...) ./ iop)
     end
-    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
+end
+
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector, _dummy; kw...)
+    norms, vps... = nps
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+
+    normed_predictions = mapreduce(+, pdfs, vps, abs2.(norms) / sum(norms)) do d, ps, fop
         p0 = getproperty(nps, ps)
-        vector_eval(d, NLL2.bcs, p0, kw...)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+
+        (fop .* vector_eval(d, NLL2.bcs, p0; kw...) ./ iop)
     end
-    overall_norms = sum(norms)
-    normed_predictions = sum(abs2.(norms) / overall_norms .* predictions_of_pdfs ./ integrals_of_pdfs)
-    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, ber)
+
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
+end
+#=
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector, fixed::Vector; kw...)
+    for i in fixed
+        nps[i[1]][i[2]] = i[3]
+    end
+    norms, vps... = nps
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+
+    normed_predictions = mapreduce(+, pdfs, vps, abs2.(norms) / sum(norms)) do d, ps, fop
+        p0 = getproperty(nps, ps)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+
+        (fop .* vector_eval(d, NLL2.bcs, p0; kw...) ./ iop)
+    end
+
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
+end
+=#
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+
+    normed_predictions = mapreduce(+, pdfs, vks[(begin + 1):end], abs2.(norms) / sum(norms)) do d, ps, fop
+        p0 = getproperty(nps, ps)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+
+        (fop .* vector_eval(d, NLL2.bcs, p0; kw...) ./ iop)
+    end
+
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
 
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, _dummy; kw...)
-    ber = binerrors(NLL2.d_hist)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
-    if length(norms) != length(pdfs)
+
+    if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
     if length(vks) - 1 != Npdfs
         throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
     end
-    integrals_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+
+    normed_predictions = mapreduce(+, pdfs, vks[(begin + 1):end], abs2.(norms) / sum(norms)) do d, ps, fop
         p0 = getproperty(nps, ps)
-        oneD_func(x) = scalar_eval(d, x, p0; kw...)
-        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+
+        (fop .* vector_eval(d, NLL2.bcs, p0; kw...) ./ iop)
     end
-    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
-        p0 = getproperty(nps, ps)
-        vector_eval(d, NLL2.bcs, p0, kw...)
-    end
-    overall_norms = sum(norms)
-    normed_predictions = sum(abs2.(norms) / overall_norms .* predictions_of_pdfs ./ integrals_of_pdfs)
-    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, ber)
+
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
+#=
+function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw...)
+    for i in fixed
+        nps[i[1]] = i[2]
+    end
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+
+    normed_predictions = mapreduce(+, pdfs, vks[(begin + 1):end], abs2.(norms) / sum(norms)) do d, ps, fop
+        p0 = getproperty(nps, ps)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+
+        (fop .* vector_eval(d, NLL2.bcs, p0; kw...) ./ iop)
+    end
+
+    return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
+end
+=#

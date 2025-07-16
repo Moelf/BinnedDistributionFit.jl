@@ -105,7 +105,7 @@ end
 
 function Base.:+(a::ExtendPdf, b::ExtendPdf)
     if a.support != b.support
-        error("+: Supports of the two ExtendPdfs are not equal")
+        error("+: Supports of ExtendPdfs $a and $b are not equal")
     end
     SumOfPdfs([a, b], a.support)
 end
@@ -124,7 +124,7 @@ function Base.:+(a::ExtendPdf, b::SumOfPdfs)
 end
 function Base.:+(a::SumOfPdfs, b::SumOfPdfs)
     if a.support != b.support
-        error("+: Supports of the two SumOfPdfs $a and $b are not equal")
+        error("+: Supports of SumOfPdfs $a and $b are not equal")
     end
     SumOfPdfs([a.pdfs; b.pdfs], a.support)
 end

@@ -129,14 +129,11 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector; kw...)
     if length(vps) - 1 != Npdfs
         throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vps) - 1)"))
     end
-    integrals_of_pdfs = map(pdfs, vps) do d, p0
-        oneD_func(x) = scalar_eval(d, x, p0; kw...)
-        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+
+    normalized_predictions = mapreduce(+, pdfs, vps, fractions_of_pdfs) do d, ps, fop
+        iop = _integrate(x -> scalar_eval(d, x, ps; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+        vector_eval(d, NLL2.bcs, ps, kw...) .* fop ./ iop
     end
-    predictions_of_pdfs = map(pdfs, vps) do d, p0
-        vector_eval(d, NLL2.bcs, p0, kw...)
-    end
-    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
 
@@ -157,16 +154,12 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector; kw...)
     if length(vks) - 1 != Npdfs
         throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
     end
-    integrals_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+
+    normalized_predictions = mapreduce(+, pdfs, vks[(begin + 1):end], fractions_of_pdfs) do d, ps, fop
         p0 = getproperty(nps, ps)
-        oneD_func(x) = scalar_eval(d, x, p0; kw...)
-        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+        vector_eval(d, NLL2.bcs, p0; kw...) .* fop ./ iop
     end
-    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
-        p0 = getproperty(nps, ps)
-        vector_eval(d, NLL2.bcs, p0, kw...)
-    end
-    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
 
@@ -182,17 +175,37 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, _dummy; kw...)
     if length(vps) - 1 != Npdfs
         throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vps) - 1)"))
     end
-    integrals_of_pdfs = map(pdfs, vps) do d, p0
-        oneD_func(x) = scalar_eval(d, x, p0; kw...)
-        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+
+    normalized_predictions = mapreduce(+, pdfs, vps, fractions_of_pdfs) do d, ps, fop
+        iop = _integrate(x -> scalar_eval(d, x, ps; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+        vector_eval(d, NLL2.bcs, ps, kw...) .* fop ./ iop
     end
-    predictions_of_pdfs = map(pdfs, vps) do d, p0
-        vector_eval(d, NLL2.bcs, p0, kw...)
-    end
-    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
+#=
+function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, fixed::Vector; kw...)
+    for i in fixed
+        nps[i[1]][i[2]] = i[3]
+    end
+    norms, vps... = nps
+    overall_norm = sum(norms)
+    fractions_of_pdfs = norms ./ overall_norm
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vps) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vps) - 1)"))
+    end
 
+    normalized_predictions = mapreduce(+, pdfs, vps, fractions_of_pdfs) do d, ps, fop
+        iop = _integrate(x -> scalar_eval(d, x, ps; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+        vector_eval(d, NLL2.bcs, ps, kw...) .* fop ./ iop
+    end
+    return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
+end
+=#
 function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, _dummy; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
@@ -206,15 +219,37 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, _dummy; kw...)
     if length(vks) - 1 != Npdfs
         throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
     end
-    integrals_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
+
+    normalized_predictions = mapreduce(+, pdfs, vks[(begin + 1):end], fractions_of_pdfs) do d, ps, fop
         p0 = getproperty(nps, ps)
-        oneD_func(x) = scalar_eval(d, x, p0; kw...)
-        _integrate(oneD_func, NLL2.d_hist, NLL2.num_int; kw...)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+        vector_eval(d, NLL2.bcs, p0, kw...) .* fop ./ iop
     end
-    predictions_of_pdfs = map(pdfs, vks[(begin + 1):end]) do d, ps
-        p0 = getproperty(nps, ps)
-        vector_eval(d, NLL2.bcs, p0, kw...)
-    end
-    normalized_predictions = sum(fractions_of_pdfs .* predictions_of_pdfs ./ integrals_of_pdfs)
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
+#=
+function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, fixed::Vector; kw...)
+    for i in fixed
+        nps[i[1]] = i[2]
+    end
+    vks = valkeys(nps)
+    norms = nps[vks[begin]]
+    overall_norm = sum(norms)
+    fractions_of_pdfs = norms ./ overall_norm
+    pdfs = get_pdf(NLL2.pdf)
+    Npdfs = length(pdfs)
+    if length(norms) != Npdfs
+        throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
+    end
+    if length(vks) - 1 != Npdfs
+        throw(ArgumentError("Expected $Npdfs set$((Npdfs > 1) ? "s" : "") of parameters, got $(length(vks) - 1)"))
+    end
+
+    normalized_predictions = mapreduce(+, pdfs, vks[(begin + 1):end], fractions_of_pdfs) do d, ps, fop
+        p0 = getproperty(nps, ps)
+        iop = _integrate(x -> scalar_eval(d, x, p0; kw...), NLL2.d_hist, NLL2.num_int; kw...)
+        vector_eval(d, NLL2.bcs, p0, kw...) .* fop ./ iop
+    end
+    return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
+end
+=#
