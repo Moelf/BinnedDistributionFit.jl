@@ -31,6 +31,8 @@ end
 
 @testitem "minuit optimization" begin
     using FHist, ComponentArrays, Distributions, BinnedDistributionFit, Minuit2
+    using Random: seed!
+    seed!(123456)
     N = Normal(100.0, 5.0)
     N_gaus_truth = 5000
     dat1 = rand(N, N_gaus_truth)
