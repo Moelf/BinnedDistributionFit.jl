@@ -182,7 +182,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, _dummy; kw...)
     end
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
-
+#=
 function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, fixed::Vector; kw...)
     for i in fixed
         nps[i[1]][i[2]] = i[3]
@@ -205,7 +205,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::Vector, fixed::Vector; kw...)
     end
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
-
+=#
 function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, _dummy; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
@@ -227,8 +227,7 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, _dummy; kw...)
     end
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
-
-
+#=
 function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, fixed::Vector; kw...)
     for i in fixed
         nps[i[1]] = i[2]
@@ -253,4 +252,4 @@ function (NLL2::LikelihoodSpec{<:NLL})(nps::ComponentVector, fixed::Vector; kw..
     end
     return RooFitNLL_internal(normalized_predictions, NLL2.d_hist.bincounts; normalization = overall_norm)
 end
-
+=#

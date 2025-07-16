@@ -51,7 +51,7 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector, _dummy; kw...)
 
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
-
+#=
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector, fixed::Vector; kw...)
     for i in fixed
         nps[i[1]][i[2]] = i[3]
@@ -76,7 +76,7 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector, fixed::Vector; kw...)
 
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
-
+=#
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
@@ -122,7 +122,7 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, _dummy; kw...)
 
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
-
+#=
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw...)
     for i in fixed
         nps[i[1]] = i[2]
@@ -148,3 +148,4 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw..
 
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
+=#
