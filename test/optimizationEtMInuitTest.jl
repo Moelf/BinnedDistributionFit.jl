@@ -17,7 +17,6 @@
 
     #para_guess = ComponentArray(norms = [N_total * 0.99, N_total * 0.01], p1 = [30.0], p2 = [70.0, 6])
     para_guess = ComponentArray(norms = [N_total*0.99, N_total*0.01], p1 = [40.0], p2 = [150.0, 3.])
-
     optf2 = OptimizationFunction(NLL, AutoForwardDiff())
     prob2 = OptimizationProblem(
         optf2, para_guess;
