@@ -45,4 +45,4 @@ TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [targets]
-test = ["Aqua", "Test", "FHist", "TestItems", "TestItemRunner", "Optimization", "ForwardDiff", "Minuit2"]
+test = ["Aqua", "Test", "FHist", "TestItems", "TestItemRunner", "Optimization", "ForwardDiff", "Minuit2", "Random"]
