@@ -18,7 +18,7 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector; kw...)
     norms, vps... = nps
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
-
+  
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -138,6 +138,7 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw..
     for i in fixed
         nps[i[1]] = i[2]
     end
+
     vks = valkeys(nps)
     norms = nps[vks[begin]]
     pdfs = get_pdf(NLL2.pdf)
@@ -160,3 +161,4 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw..
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
 =#
+
