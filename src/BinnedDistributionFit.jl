@@ -86,11 +86,11 @@ Type representing a sum of pdfs.
 ## Examples
 
 ```julia
-julia> d1 = ExtendPdf((x, _)->x, (1,3))
+julia> d1 = ExtendPdf((x, _) -> x, (1,3))
 
-julia> d2 = ExtendPdf((x, _)->x^2, (1,3))
+julia> d2 = ExtendPdf((x, _) -> x^2, (1,3))
 
-julia> sd = d1+d2
+julia> sd = d1 + d2
 SumOfPdfs{Vector{ExtendPdf{F, Tuple{Int64, Int64}} where F}, Tuple{Int64, Int64}}(ExtendPdf{F, Tuple{Int64, Int64}} where F[ExtendPdf{var"#13#14", Tuple{Int64, Int64}}(var"#13#14"(), (1, 3)), ExtendPdf{var"#15#16", Tuple{Int64, Int64}}(var"#15#16"(), (1, 3))], (1, 3))
 
 julia> BinnedDistributionFit.scalar_eval(sd, 2.0)
@@ -101,7 +101,7 @@ julia> BinnedDistributionFit.vector_eval(sd, [2.0, 3.0])
  6.0
 12.0
 
-julia> sd2 = d1+d2+d3
+julia> sd2 = d1 + d2 + d3
 
 julia> BinnedDistributionFit.scalar_eval(sd2, 2.0, [[], [], [1,2]])
 ERROR: BoundsError: attempt to access 2-element Vector{Any} at index [3]

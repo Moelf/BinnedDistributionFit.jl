@@ -48,7 +48,7 @@ vector_eval(d1, [1, 2], [2, 3])
 ## NLL Loss Function
 `BinnedDistributionFit` uses the FHist package to create histograms. Using. `Hist1D`, we score a certain function on its fit to the data using several methods. The simplest method is using negative log likelihood scoring, as it does not require the standard deviation of each histogram bin. 
 
-We create a `LikelihoodSpec` with our data and pdf, which we can then call with specific values of the parameters of pdf.
+We create a [`LikelihoodSpec`](@ref BinnedDistributionFit.LikelihoodSpec) with our data and pdf, which we can then call with specific values of the parameters of pdf.
 ```julia
 pdf = ExtendPdf((x, _) -> x, (1, 3)) 
 hist = Hist1D(; binedges = 1:3, bincounts = [2.0, 4.0])

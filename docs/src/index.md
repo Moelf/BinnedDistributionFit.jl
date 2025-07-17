@@ -26,15 +26,18 @@ CurrentModule = BinnedDistributionFit
 Documentation for [BinnedDistributionFit](https://github.com/Moelf/BinnedDistributionFit.jl).
 
 
-
 # What is BinnedDistributionFit?
 BinnedDistributionFit is a package which defines several loss functions to compare probability density functions (pdfs) or sums thereof to specific histogram data. BinnedDistributionFit supports any number of independently normalized pdfs. Either negative log likelihood or chi squared regressions may be used.
 
 # Mathematical Background
-`BinnedDistributionFit` supports two methods for calculating likelihood: Negative log likelihood and the chi squared test.
+The question that this package seeks to answer, in simple terms, is as such: Given some data, what is the most likely set of parameters which fits some function to that data. Symbolically, we may write ``p(\text{ps}\ | \ O)``, or, "the probability of ``\text{ps}`` given ``O``." This measure is called likelihood.
+
+`BinnedDistributionFit` supports two methods for calculating likelihood: Negative log likelihood and the reduced chi squared statistic. Both of these yield measurements of how accurately a function fits to particular data, with better fits resulting in lower scores.
 
 ## Negative Log Likelihood Function
 Given a histogram and a pdf, we can compare the differences between each observed and expected value over the support (domain) of the pdf using likelihood as a measurement of error. We use negative log likelihood (NLL) since this simplifies the calculation of the overall likelihood by reducing the product of each points' likelihood to the sum of the logs of their likelihoods. We negate this sum to format this properly to act as a minimization problem.
+
+The negative log likelihood function has two terms: the per-bin term and the overall Poisson term. The per-bin term sums the the products of the observations with the log of the expected terms (for a given set of parameters ``\text{ps}``). We know that the data at each point of a histogram is described by a Poisson distribution. 
 
 With histogram data ``y`` at each of a set of points ``x_i`` on the support ``S``, we can perform our evaluation like so 
 ```math
@@ -47,10 +50,18 @@ When only one pdf is defined this equation reduces to
 -\ln(\mathcal{L})=-\sum_{i=1}^{N_{\text{bins}}}y_i\ln\left(\frac{\text{UserPdf}_i(x_i,\text{parameters})}{\int_S\text{UserPdf}_i(x,\text{parameters})dx}\right)-\left(N_{\text{observed}}\ln N_{\text{expected}}-N_{\text{expected}}\right).
 ```
 
-## Chi Squared Function
-Compared to the NLL function, the chi squared measure of error is much simpler. However, it has the downside that it requires some measure of the standard error of each bin. This package uses the built-in `Hist1D` field `sumw2' to define the variance (``\sigma^2``) of the histogram. The formula for this method is
+## Reduced Chi Squared Statistic
+
+Given the likelihood function ``L(x | \theta)``, we can define ``\lambda(\theta)`` as 
+```math
+\frac{L(x | \theta)}{L(x | \hat{\theta})}.
+```
+``L(x | \hat{\theta})`` is the global minimum of the likelihood function (at some parameters ``\hat{\theta}``). The ``\chi^2`` distribution can then be described by 
+```math
+\chi^2 = -2\ln \lambda (\theta)
+```
+Compared to the NLL function, the chi squared measure of error is much simpler. However, it has the downside that it requires some measure of the standard error of each bin. This package uses the built-in `Hist1D` field `sumw2` to define the variance ``\sigma^2`` of the histogram. The formula for the method implemented in this package is
 ```math
 \chi^2 = \sum_{i=1}^{N_{\text{bins}}}\frac{\left(y_i-\sum_{j=1}^{N_{\text{pdfs}}}\frac{N_i^2\cdot\text{UserPdf}_i(x_i,\text{parameters})}{N_{\text{expected}}\cdot\int_S\text{UserPdf}_i(x,\text{parameters})dx}\right)^2}{\sigma_i^2}.
 ```
 This formulation uses the same variables as the previous equation.
-
