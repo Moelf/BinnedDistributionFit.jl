@@ -16,7 +16,7 @@
     NLL = BinnedDistributionFit.LikelihoodSpec(pdfs, h1; num_int = BinnedDistributionFit.SimpleSumIntegrator())
 
     #para_guess = ComponentArray(norms = [N_total * 0.99, N_total * 0.01], p1 = [30.0], p2 = [70.0, 6])
-    para_guess = ComponentArray(norms = [N_total*0.99, N_total*0.01], p1 = [40.0], p2 = [150.0, 3.])
+    para_guess = ComponentArray(norms = [N_total * 0.99, N_total * 0.01], p1 = [40.0], p2 = [150.0, 3.0])
     optf2 = OptimizationFunction(NLL, AutoForwardDiff())
     prob2 = OptimizationProblem(
         optf2, para_guess;
@@ -26,7 +26,7 @@
     sol = solve(prob2, Optimization.LBFGS(); maxiters = 500000)
 
     para_truth = ComponentArray(norms = [N_exp_truth, N_gaus_truth], p1 = [50.0], p2 = [100.0, 5.0])
-    @test all(isapprox.(sol.u, para_truth; rtol=0.1))
+    @test all(isapprox.(sol.u, para_truth; rtol = 0.1))
 end
 
 @testitem "minuit optimization" begin

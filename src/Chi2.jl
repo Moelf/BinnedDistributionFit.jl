@@ -2,17 +2,23 @@ using FHist
 
 """
     chi2(obs, expected, sd)
-Computes the chi squared statistic for given vectors of observed and expected values. Returns `Inf` if any standard deviation is not a positive number.
+Computes the reduced chi squared statistic for given vectors of observed and expected values. Returns `Inf` if any standard deviation is not a positive number.
+
+This function is primarily for internal use.
 """
 function chi2(obs, expected, sd)
     return all(i -> i > 0, sd) ? sum(@. abs2((obs - expected) / sd)) : Inf
 end
 
+"""
+    (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector; kw...)
+Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` via the reduced chi squared statistic with a specific set of parameters `nps`. This method takes `nps` to be a `Vector{Vector}`.
+"""
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector; kw...)
     norms, vps... = nps
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
-    
+  
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -77,12 +83,17 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector, fixed::Vector; kw...)
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
 =#
+
+"""
+    (NLL2::LikelihoodSpec{<:CSQ})(nps::Vector; kw...)
+Method of `LikelihoodSpec` structs. Evaluates a given `LikelihoodSpec` via the reduced chi squared statistic with a specific set of parameters `nps`. This method takes `nps` to be a `ComponentArray`.
+"""
 function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector; kw...)
     vks = valkeys(nps)
     norms = nps[vks[begin]]
     pdfs = get_pdf(NLL2.pdf)
     Npdfs = length(pdfs)
-    
+
     if length(norms) != Npdfs
         throw(ArgumentError("Expected $Npdfs normalizations, got $(length(norms))"))
     end
@@ -127,6 +138,7 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw..
     for i in fixed
         nps[i[1]] = i[2]
     end
+
     vks = valkeys(nps)
     norms = nps[vks[begin]]
     pdfs = get_pdf(NLL2.pdf)
@@ -149,3 +161,4 @@ function (NLL2::LikelihoodSpec{<:CSQ})(nps::ComponentVector, fixed::Vector; kw..
     return BinnedDistributionFit.chi2(NLL2.d_hist.bincounts, normed_predictions, binerrors(NLL2.d_hist))
 end
 =#
+
