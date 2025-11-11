@@ -1,9 +1,6 @@
-# BinnedDistributionFit
+# BinnedDistributionFit.jl
 
 [![Build Status](https://github.com/Moelf/BinnedDistributionFit.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/Moelf/BinnedDistributionFit.jl/actions/workflows/Test.yml?query=branch%3Amain)
-
-## [Work In Progress]
-Everything is subject to change, including type names and type hierarchy.
 
 ## The Scope of this Package
 We try to cover a core set of usages common in HEP, namely, fitting one or multiple distributions to binned data, using
